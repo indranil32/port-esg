@@ -10,4 +10,5 @@ az ad sp show --id "$APPID" >/dev/null 2>&1 || az ad sp create --id "$APPID" -o 
 az ad app federated-credential create --id "$APPID" --parameters "{\"name\":\"github-$ENVN\",\"issuer\":\"https://token.actions.githubusercontent.com\",\"subject\":\"repo:$REPO:environment:$ENVN\",\"audiences\":[\"api://AzureADTokenExchange\"]}" -o none 2>/dev/null || echo "federated credential exists"
 SCOPE=/subscriptions/$SUB/resourceGroups/$RG
 az role assignment create --assignee "$APPID" --role Contributor --scope "$SCOPE" -o none 2>/dev/null || echo "role exists"
+echo "NOTE: if login fails with a subject mismatch, add a credential for the subject shown in the error (repos with ID-based subject claims)"
 echo "AZURE_CLIENT_ID=$APPID"; echo "AZURE_TENANT_ID=$TENANT"; echo "AZURE_SUBSCRIPTION_ID=$SUB"; echo "AZURE_RESOURCE_GROUP=$RG"

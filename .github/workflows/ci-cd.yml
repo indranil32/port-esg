@@ -159,7 +159,7 @@ jobs:
         if: always()
         with: { name: smoke-results, path: smoke.xml }
       - name: Roll back on failure
-        if: failure()
+        if: failure() && env.PREV != ''
         run: |
           echo "Rolling back to $PREV"
           az containerapp update -g "$RG" -n "$APP" --image "$PREV" -o none
