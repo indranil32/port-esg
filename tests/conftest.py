@@ -18,7 +18,12 @@ USERS = {"admin": "esg.admin@adports-demo.local", "owner": "data.owner@adports-d
 
 @pytest.fixture(scope="session")
 def client():
+    import time
     with TestClient(app) as c:
+        for _ in range(600):  # seeding runs in the background after startup
+            if c.get("/api/health").json().get("status") == "ok":
+                break
+            time.sleep(0.5)
         yield c
 
 

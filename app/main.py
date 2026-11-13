@@ -17,18 +17,28 @@ from .auth import current_user, require
 log = logging.getLogger("esg")
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    for attempt in range(10):  # the database may still be starting
+async def _init_data(app: FastAPI):
+    """Schema and seed run in the background so the port opens at once. Over a slow database
+    link the first seed can outlast the platform's startup probe and the container would be
+    restarted in a loop."""
+    for attempt in range(40):  # the database may still be starting
         try:
             mode = await run_in_threadpool(seed.ensure_initial_data)
             log.warning("Initial data: %s", mode)
-            break
+            app.state.ready = True
+            return
         except Exception as e:
             log.warning("Database not ready (%s); retrying", e)
-            await asyncio.sleep(3)
+            await asyncio.sleep(5)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    app.state.ready = False
+    init = asyncio.create_task(_init_data(app))
     task = asyncio.create_task(alerts.scheduler())
     yield
+    init.cancel()
     task.cancel()
     db.close_pool()
 
@@ -63,6 +73,8 @@ app.include_router(entra.router)
 
 @app.get("/api/health")
 def health():
+    if not getattr(app.state, "ready", False):
+        return {"status": "starting"}
     with db.conn() as c:
         db.row(c, "SELECT 1")
     return {"status": "ok"}
