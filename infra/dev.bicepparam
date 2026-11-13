@@ -2,6 +2,9 @@ using './main.bicep'
 
 // Trial / personal subscription. Synthetic data only.
 param prefix = 'esgdev'
+param image = 'ghcr.io/indranil32/port-esg:latest'
+param location = 'uaenorth'
+param demoPassword = readEnvironmentVariable('ESG_DEMO_PASSWORD', '')
 param seedDemoData = true
 param deployDocumentIntelligence = false   // built-in OCR; avoids a pay-per-use service on the trial
 param storageSku = 'Standard_LRS'

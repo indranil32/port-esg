@@ -33,6 +33,9 @@ param entraAllowedDomains string = ''
 
 @description('true loads synthetic demo data on first start. Must be false for real data.')
 param seedDemoData bool = false
+@secure()
+@description('Password for the seeded demo users. Set this when seedDemoData is true, otherwise the published default applies.')
+param demoPassword string = ''
 param adminEmail string = ''
 @secure()
 param adminPassword string = ''
@@ -156,6 +159,8 @@ resource app 'Microsoft.App/containerApps@2024-03-01' = {
         { name: 'entra-secret', value: entraClientSecret }
       ] : [], adminPassword != '' ? [
         { name: 'admin-password', value: adminPassword }
+      ] : [], demoPassword != '' ? [
+        { name: 'demo-password', value: demoPassword }
       ] : [])
     }
     template: {
@@ -184,6 +189,8 @@ resource app 'Microsoft.App/containerApps@2024-03-01' = {
             { name: 'ENTRA_CLIENT_SECRET', secretRef: 'entra-secret' }
           ] : [], adminPassword != '' ? [
             { name: 'ADMIN_PASSWORD', secretRef: 'admin-password' }
+          ] : [], demoPassword != '' ? [
+            { name: 'DEMO_PASSWORD', secretRef: 'demo-password' }
           ] : [])
           probes: [
             { type: 'Readiness', httpGet: { path: '/api/health', port: 8000 }, initialDelaySeconds: 10 }
