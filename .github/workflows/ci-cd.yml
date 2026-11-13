@@ -38,7 +38,7 @@ jobs:
       APP_SECRET: ci-secret
       ALERT_INTERVAL_SEC: "0"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with: { python-version: "3.12", cache: pip, cache-dependency-path: "requirements*.txt" }
       - run: pip install -r requirements-dev.txt
@@ -55,7 +55,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with: { fetch-depth: 0 }
       - uses: actions/setup-python@v5
         with: { python-version: "3.12", cache: pip, cache-dependency-path: "requirements*.txt" }
@@ -86,7 +86,7 @@ jobs:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: docker/setup-buildx-action@v3
       - name: Build (local)
         uses: docker/build-push-action@v6
@@ -123,7 +123,7 @@ jobs:
     env:
       RG: ${{ vars.AZURE_RESOURCE_GROUP }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with: { python-version: "3.12", cache: pip, cache-dependency-path: "requirements*.txt" }
       - run: pip install -r requirements-dev.txt
