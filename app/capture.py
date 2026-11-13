@@ -24,7 +24,7 @@ EVIDENCE_DIR = Path(os.environ.get("EVIDENCE_DIR", "./data/evidence"))
 GROUPS = [
     ("Operations", ["vessel", "berth", "vessel_call", "asset", "container_move", "gate_transaction", "ais_position"]),
     ("Energy", ["meter", "meter_register_reading", "energy_meter_reading", "fuel_transaction", "shore_power_session", "refrigerant_event"]),
-    ("Environment", ["sensor", "air_quality_reading", "water_quality_reading", "noise_reading",
+    ("Environment", ["sensor", "air_quality_reading", "water_quality_reading", "water_record", "noise_reading",
                      "weather_observation", "environmental_incident"]),
     ("People & safety", ["employee_snapshot", "training_record", "hours_worked", "safety_incident"]),
     ("Governance & finance", ["spend_record", "utility_invoice", "risk", "policy", "audit_finding", "certification"]),

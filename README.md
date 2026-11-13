@@ -125,9 +125,12 @@ and `build/esg_schemas.json` into `db/01_schema.sql` and `app/esg_schemas.json`.
   rejected, not deleted, and a locked period blocks it).
 - *Consolidation approach*: each entity has an equity share (default 100%); the GHG inventory can be viewed as all entities,
   equity share, or operational control (`?approach=`). Annual report still uses all entities.
+- *Water footprint* (GRI 303): `water_record` holds withdrawal, discharge and recycled volumes by source and entity. KPIs:
+  withdrawal, consumption (withdrawal less discharge) and recycled share, mapped to GRI 303-3 and 303-5.
+  Not yet modelled: per-source water-stress classification, quality of discharge against permit limits.
 - Migrations are tracked in `esg.schema_migration` and applied at startup.
 
-**Not yet built (planned rounds):** water footprint, ingest batches with withdraw,
+**Not yet built (planned rounds):** 
 per-framework completeness, DB-level audit triggers on every table, AI document classification and anomaly
 detection, data-logger connectors, report templates, ISO 14001 / 50001 workflows. Vendor ontology size, patents,
 SOC 2 and 24/7 support cannot be matched by code alone.
@@ -160,7 +163,7 @@ SOC 2 and 24/7 support cannot be matched by code alone.
 ```bash
 DATABASE_URL=postgresql://... pytest -q tests
 ```
-35 tests cover role boundaries, ingestion edge cases, four-eyes, audit immutability, calculation arithmetic
+36 tests cover role boundaries, ingestion edge cases, four-eyes, audit immutability, calculation arithmetic
 against independent queries, rejected-record exclusion, KPI formulas, exports, alert de-duplication,
 auto-resolve, webhook delivery, and rule-parameter injection guards, period locks, collection links, source trace, and the evidence flow
 (OCR of a synthetic meter photo, flags, atomic linking, rollover, derived consumption, field-operator limits).

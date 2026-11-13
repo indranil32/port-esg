@@ -46,6 +46,9 @@ METRICS = [
     ("SHORE_POWER_SHARE", "Berth hours on shore power", "E", "%", "higher", "monthly", ["A_operations"]),
     ("WASTE_DIVERSION", "Waste diverted from disposal", "E", "%", "higher", "monthly", ["G_manual"]),
     ("AQ_PM25_MEAN", "Mean PM2.5 at monitoring stations", "E", "ug/m3", "lower", "daily", ["C_environment"]),
+    ("WATER_WITHDRAWAL", "Water withdrawal", "E", "m3", "lower", "monthly", ["G_manual"]),
+    ("WATER_CONSUMPTION", "Water consumption (withdrawal less discharge)", "E", "m3", "lower", "monthly", ["G_manual"]),
+    ("WATER_RECYCLED_SHARE", "Water recycled or reused", "E", "%", "higher", "monthly", ["G_manual"]),
     ("SPILLS", "Reportable spills", "E", "count", "lower", "monthly", ["C_environment"]),
     ("LTIFR", "Lost-time injury frequency rate", "S", "per million hours", "lower", "monthly", ["D_enterprise"]),
     ("TRIR", "Total recordable incident rate", "S", "per million hours", "lower", "monthly", ["D_enterprise"]),
@@ -77,7 +80,8 @@ REQUIREMENTS = [
     ("GRI", "403-9", "Work-related injuries", ["LTIFR", "TRIR", "FATALITIES", "TENANT_INCIDENTS"]),
     ("GRI", "404-1", "Average hours of training per year per employee", ["TRAINING_HRS_PER_EMP"]),
     ("GRI", "405-1", "Diversity of governance bodies and employees", ["FEMALE_SHARE", "NATIONAL_SHARE"]),
-    ("GRI", "303-3", "Water withdrawal", []),
+    ("GRI", "303-3", "Water withdrawal", ["WATER_WITHDRAWAL", "WATER_RECYCLED_SHARE"]),
+    ("GRI", "303-5", "Water consumption", ["WATER_CONSUMPTION"]),
     ("GRI", "201-2", "Financial implications and other risks and opportunities due to climate change", []),
     ("IFRS_S2", "S2.29(a)(i)", "Absolute gross Scope 1 greenhouse gas emissions", ["GHG_S1"]),
     ("IFRS_S2", "S2.29(a)(ii)", "Absolute gross Scope 2 greenhouse gas emissions", ["GHG_S2"]),
@@ -462,6 +466,20 @@ def seed_demo(c, today: date | None = None):
     bulk(c, "waste_manifest", ["manifest_id", "entity_id", "manifest_ref", "waste_type", "hazardous", "quantity_kg", "disposal_method", "contractor", "manifest_date"] + MC,
          [(U(), terms[rng.choice(tcodes)], f"WM-{i:04d}", (w := rng.choice(wtypes)), w == "oily waste", round(rng.uniform(200, 6000), 0), rng.choice(methods),
            "Waste Contractor (sample)", y0 + timedelta(days=rng.randint(0, max(ndays - 1, 0)))) + meta("MANUAL", f"wm{i}", dq="manual") for i in range(140)])
+    wsrc = [("desalinated", 0.55), ("municipal", 0.30), ("treated_effluent", 0.15)]
+    months = sorted({(y0 + timedelta(days=d)).replace(day=1) for d in range(0, max(ndays, 1), 28)})
+    wrows, wi = [], 0
+    for tc in tcodes:
+        for m0 in months:
+            base = rng.uniform(9000, 26000)
+            for src, share in wsrc:
+                wi += 1
+                wrows.append((U(), terms[tc], m0, (m0 + timedelta(days=32)).replace(day=1) - timedelta(days=1), "withdrawal", src, round(base * share, 0), False) + meta("MANUAL", f"wr{wi}", dq="measured"))
+            wi += 1
+            wrows.append((U(), terms[tc], m0, (m0 + timedelta(days=32)).replace(day=1) - timedelta(days=1), "discharge", "seawater", round(base * 0.35, 0), False) + meta("MANUAL", f"wr{wi}", dq="measured"))
+            wi += 1
+            wrows.append((U(), terms[tc], m0, (m0 + timedelta(days=32)).replace(day=1) - timedelta(days=1), "recycled", "treated_effluent", round(base * 0.12, 0), False) + meta("MANUAL", f"wr{wi}", dq="measured"))
+    bulk(c, "water_record", ["water_record_id", "entity_id", "period_start", "period_end", "flow_type", "source_type", "volume_m3", "water_stress_area"] + MC, wrows)
     bulk(c, "community_grievance", ["grievance_id", "entity_id", "received_date", "channel", "category", "status", "resolution_days"] + MC,
          [(U(), terms[rng.choice(tcodes)], y0 + timedelta(days=rng.randint(0, max(ndays - 1, 0))), rng.choice(["phone", "web", "letter"]),
            rng.choice(["noise", "traffic", "odour", "dust"]), "closed", rng.randint(3, 40)) + meta("MANUAL", f"gr{i}") for i in range(14)])

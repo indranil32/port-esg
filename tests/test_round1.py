@@ -243,3 +243,21 @@ def test_consolidation_approaches(client, H):
     assert client.get(f"/api/reports/ghg?approach=bogus&run_id={run['run_id']}", headers=H["auditor"]).status_code == 400
     with db.conn() as c, pytest.raises(Exception):
         c.execute("UPDATE entity SET equity_share_pct = 150 WHERE entity_id = %s", (ent,))
+
+
+# ------------------------------------------------------------------ water
+def test_water_kpis(client, H):
+    ent = terminal(client, H)
+    def rec(flow, src, v, n):
+        return {"entity_id": ent, "period_start": "2020-08-01", "period_end": "2020-08-31", "flow_type": flow, "source_type": src, "volume_m3": v, "source_record_id": f"w{n}-" + UNIQ()}
+    r = client.post("/api/ingest/water_record", headers=H["owner"], json={"records": [
+        rec("withdrawal", "desalinated", 1000, 1), rec("withdrawal", "municipal", 500, 2), rec("discharge", "seawater", 400, 3), rec("recycled", "treated_effluent", 150, 4),
+        {**rec("withdrawal", "municipal", -5, 5)}, {**rec("bogus", "municipal", 5, 6)}]}).json()
+    assert r["inserted"] == 4 and len(r["errors"]) == 2
+    run = client.post("/api/calc/run", headers=H["admin"], json={"period_start": "2020-08-01", "period_end": "2020-08-31"}).json()
+    k = {x["metric_code"]: x["value"] for x in client.get(f"/api/reports/kpis?run_id={run['run_id']}", headers=H["auditor"]).json()["rows"] if x["entity_type"] == "port"}
+    assert float(k["WATER_WITHDRAWAL"]) == 1500 and float(k["WATER_CONSUMPTION"]) == 1100 and float(k["WATER_RECYCLED_SHARE"]) == pytest.approx(10.0)
+    d = client.get(f"/api/reports/disclosures?run_id={run['run_id']}", headers=H["auditor"]).json()["rows"]
+    assert [x for x in d if x["disclosure_code"] == "303-3"][0]["coverage"] == "data"
+    b = client.post(f"/api/batches/{r['batch_id']}/withdraw", headers=H["owner"], json={"reason": "test"})
+    assert b.status_code == 200 and b.json()["withdrawn"] == 4

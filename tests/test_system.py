@@ -168,7 +168,7 @@ def test_reports_and_exports(client, H):
     assert csv.status_code == 200 and csv.headers["content-type"].startswith("text/csv") and "co2e_tonnes" in csv.text.splitlines()[0]
     assert "ESG performance report" in client.get("/api/reports/annual.html", headers=H["admin"]).text
     cov = {(d["framework"], d["disclosure_code"]): d["coverage"] for d in client.get("/api/reports/disclosures", headers=H["admin"]).json()["rows"]}
-    assert cov[("GRI", "305-1")] == "data" and cov[("GRI", "303-3")] == "not_mapped"
+    assert cov[("GRI", "305-1")] == "data" and cov[("GRI", "201-2")] == "not_mapped"
     assert client.get("/api/reports/summary", headers=H["tenant"]).status_code == 403
 
 

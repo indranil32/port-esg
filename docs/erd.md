@@ -1,6 +1,6 @@
 # Port ESG data model: entity relationship diagrams
 
-49 tables, split into 8 domain diagrams plus a relationship overview. Generated from the same definition as `schema.sql` and the JSON Schemas.
+50 tables, split into 8 domain diagrams plus a relationship overview. Generated from the same definition as `schema.sql` and the JSON Schemas.
 
 Legend: `PK` primary key, `FK` foreign key, `UK` unique. A dotted-circle end (`|o`) means the foreign key is optional.
 
@@ -36,6 +36,8 @@ erDiagram
     entity |o--o{ sensor : "entity_id"
     sensor ||--o{ air_quality_reading : "sensor_id"
     sensor ||--o{ water_quality_reading : "sensor_id"
+    entity ||--o{ water_record : "entity_id"
+    evidence_document |o--o{ water_record : "doc_id"
     sensor ||--o{ noise_reading : "sensor_id"
     sensor ||--o{ weather_observation : "sensor_id"
     entity ||--o{ environmental_incident : "entity_id"
@@ -364,6 +366,17 @@ erDiagram
         float hydrocarbon_ppm
         string quality_flag
     }
+    water_record {
+        string water_record_id PK
+        string entity_id FK
+        date period_start
+        date period_end
+        string flow_type
+        string source_type
+        float volume_m3
+        boolean water_stress_area
+        string doc_id FK
+    }
     noise_reading {
         int reading_id PK
         string sensor_id FK
@@ -398,9 +411,14 @@ erDiagram
     entity {
         string entity_id PK
     }
+    evidence_document {
+        string doc_id PK
+    }
     entity |o--o{ sensor : "entity_id"
     sensor ||--o{ air_quality_reading : "sensor_id"
     sensor ||--o{ water_quality_reading : "sensor_id"
+    entity ||--o{ water_record : "entity_id"
+    evidence_document |o--o{ water_record : "doc_id"
     sensor ||--o{ noise_reading : "sensor_id"
     sensor ||--o{ weather_observation : "sensor_id"
     entity ||--o{ environmental_incident : "entity_id"

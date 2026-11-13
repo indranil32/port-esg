@@ -37,6 +37,7 @@
         "sensor",
         "air_quality_reading",
         "water_quality_reading",
+        "water_record",
         "noise_reading",
         "weather_observation",
         "environmental_incident",
@@ -496,6 +497,27 @@
           "records": {
             "items": {
               "$ref": "#/$defs/water_quality_reading"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "water_record"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/water_record"
             }
           }
         }
@@ -2826,6 +2848,124 @@
       "required": [
         "sensor_id",
         "ts"
+      ],
+      "additionalProperties": false
+    },
+    "water_record": {
+      "title": "water_record",
+      "description": "Water withdrawal, discharge and recycling volumes by entity and period (GRI 303).",
+      "type": "object",
+      "properties": {
+        "water_record_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "entity_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "FK to entity.entity_id"
+        },
+        "period_start": {
+          "type": "string",
+          "format": "date"
+        },
+        "period_end": {
+          "type": "string",
+          "format": "date"
+        },
+        "flow_type": {
+          "type": "string",
+          "enum": [
+            "withdrawal",
+            "discharge",
+            "recycled"
+          ]
+        },
+        "source_type": {
+          "type": "string",
+          "enum": [
+            "municipal",
+            "desalinated",
+            "groundwater",
+            "surface",
+            "seawater",
+            "third_party",
+            "treated_effluent"
+          ]
+        },
+        "volume_m3": {
+          "type": "number",
+          "minimum": 0
+        },
+        "water_stress_area": {
+          "type": "boolean"
+        },
+        "doc_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to evidence_document.doc_id"
+        },
+        "source_system_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to source_system.source_system_id"
+        },
+        "source_record_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ingested_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "data_quality": {
+          "type": "string",
+          "enum": [
+            "measured",
+            "estimated",
+            "manual",
+            "imputed"
+          ]
+        },
+        "validation_status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "validated",
+            "rejected"
+          ]
+        },
+        "version": {
+          "type": "integer"
+        },
+        "created_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "approved_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "entity_id",
+        "period_start",
+        "period_end",
+        "flow_type",
+        "source_type",
+        "volume_m3"
       ],
       "additionalProperties": false
     },

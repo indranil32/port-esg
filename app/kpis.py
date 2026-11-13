@@ -7,7 +7,7 @@ fatalities) have their annual target pro-rated to the days elapsed in the period
 """
 from . import db
 
-CUMULATIVE = {"GHG_S1", "GHG_S2", "GHG_S3", "GHG_TOTAL", "SPILLS", "FATALITIES"}
+CUMULATIVE = {"WATER_WITHDRAWAL", "WATER_CONSUMPTION", "GHG_S1", "GHG_S2", "GHG_S3", "GHG_TOTAL", "SPILLS", "FATALITIES"}
 TERMINAL_LEVEL = {"GHG_S1", "GHG_S2", "GHG_S3", "GHG_TOTAL", "GHG_INT_TEU"}
 
 LATEST_SNAP = """(SELECT max(period_end) FROM employee_snapshot WHERE period_end BETWEEN %(s)s AND %(e)s)"""
@@ -27,6 +27,16 @@ SQL_KPIS = {
     "WASTE_DIVERSION": """
         SELECT 100.0 * sum(quantity_kg) FILTER (WHERE disposal_method IN ('recycle','recover')) / nullif(sum(quantity_kg), 0) AS v
         FROM waste_manifest WHERE manifest_date BETWEEN %(s)s AND %(e)s""",
+    "WATER_WITHDRAWAL": """
+        SELECT sum(volume_m3) AS v FROM water_record
+        WHERE flow_type = 'withdrawal' AND validation_status <> 'rejected' AND period_start >= %(s)s AND period_end <= %(e)s""",
+    "WATER_CONSUMPTION": """
+        SELECT sum(volume_m3) FILTER (WHERE flow_type = 'withdrawal') - coalesce(sum(volume_m3) FILTER (WHERE flow_type = 'discharge'), 0) AS v
+        FROM water_record WHERE validation_status <> 'rejected' AND period_start >= %(s)s AND period_end <= %(e)s""",
+    "WATER_RECYCLED_SHARE": """
+        SELECT 100.0 * sum(volume_m3) FILTER (WHERE flow_type = 'recycled')
+               / nullif(sum(volume_m3) FILTER (WHERE flow_type = 'withdrawal'), 0) AS v
+        FROM water_record WHERE validation_status <> 'rejected' AND period_start >= %(s)s AND period_end <= %(e)s""",
     "AQ_PM25_MEAN": """
         SELECT avg(pm25) AS v FROM air_quality_reading WHERE ts >= %(s)s::date AND ts < %(e)s::date + 1""",
     "SPILLS": """

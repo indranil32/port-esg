@@ -250,6 +250,17 @@ temperature_c num
 hydrocarbon_ppm num nonneg
 quality_flag text""", lean=True, cons=["UNIQUE (sensor_id, ts)"]),
 
+    T("water_record", "environment", "Water withdrawal, discharge and recycling volumes by entity and period (GRI 303).", """
+water_record_id uuid pk
+entity_id uuid nn fk=entity.entity_id
+period_start date nn
+period_end date nn
+flow_type text nn in=withdrawal|discharge|recycled
+source_type text nn in=municipal|desalinated|groundwater|surface|seawater|third_party|treated_effluent
+volume_m3 num nn nonneg
+water_stress_area bool nn def=false
+doc_id uuid fk=evidence_document.doc_id""", common="manual", cons=["CHECK (period_end >= period_start)"]),
+
     T("noise_reading", "environment", "Noise level readings in dB.", """
 reading_id bigint pk identity
 sensor_id uuid nn fk=sensor.sensor_id
