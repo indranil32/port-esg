@@ -42,6 +42,12 @@ param deployDocumentIntelligence bool = true
 
 @description('PostgreSQL SKU. Burstable B1ms is enough for a trial.')
 param dbSku string = 'Standard_B1ms'
+
+@description('Storage redundancy. Standard_LRS is cheapest; use Standard_GRS for production.')
+param storageSku string = 'Standard_GRS'
+
+@description('Maximum container replicas. 1 keeps a trial cheap and predictable.')
+param maxReplicas int = 2
 param dbTier string = 'Burstable'
 
 var uniq = uniqueString(resourceGroup().id)
@@ -58,7 +64,7 @@ resource logs 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
 resource sa 'Microsoft.Storage/storageAccounts@2023-05-01' = {
   name: take('st${base}', 24)
   location: location
-  sku: { name: 'Standard_GRS' }
+  sku: { name: storageSku }
   kind: 'StorageV2'
   properties: {
     minimumTlsVersion: 'TLS1_2'
@@ -184,7 +190,7 @@ resource app 'Microsoft.App/containerApps@2024-03-01' = {
           ]
         }
       ]
-      scale: { minReplicas: 1, maxReplicas: 2 }
+      scale: { minReplicas: 1, maxReplicas: maxReplicas }
     }
   }
 }
