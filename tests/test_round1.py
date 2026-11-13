@@ -261,3 +261,24 @@ def test_water_kpis(client, H):
     assert [x for x in d if x["disclosure_code"] == "303-3"][0]["coverage"] == "data"
     b = client.post(f"/api/batches/{r['batch_id']}/withdraw", headers=H["owner"], json={"reason": "test"})
     assert b.status_code == 200 and b.json()["withdrawn"] == 4
+
+
+# ------------------------------------------------------------------ database-level audit
+def test_direct_database_changes_are_audited(client, H):
+    import os, psycopg
+    ent = terminal(client, H)
+    tag = "da-" + UNIQ()
+    r = client.post("/api/ingest/waste_manifest", headers=H["owner"], json={"records": [
+        {"entity_id": ent, "waste_type": tag, "quantity_kg": 10, "manifest_date": "2020-09-01", "source_record_id": tag}]}).json()
+    rid = r["ids"][0]
+    def log():
+        return client.get(f"/api/audit-log?table=waste_manifest&limit=500", headers=H["auditor"]).json()
+    assert len([a for a in log() if a["record_id"] == rid]) == 1            # the app writes its own row; the trigger stays quiet
+    with psycopg.connect(os.environ["DATABASE_URL"], autocommit=True, options="-c search_path=esg,public") as raw:
+        raw.execute("UPDATE waste_manifest SET quantity_kg = 99 WHERE manifest_id::text = %s", (rid,))
+        raw.execute("DELETE FROM waste_manifest WHERE manifest_id::text = %s", (rid,))
+    rows = [a for a in log() if a["record_id"] == rid]
+    direct = [a for a in rows if a["actor"].startswith("db:")]
+    assert {a["action"] for a in direct} == {"update", "delete"} and len(rows) == 3
+    upd = [a for a in direct if a["action"] == "update"][0]
+    assert float(upd["before"]["quantity_kg"]) == 10 and float(upd["after"]["quantity_kg"]) == 99

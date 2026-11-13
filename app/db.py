@@ -19,7 +19,7 @@ def pool() -> ConnectionPool:
     if _pool is None:
         _pool = ConnectionPool(
             DATABASE_URL, min_size=1, max_size=10, open=True,
-            kwargs={"row_factory": dict_row, "options": "-c search_path=esg,public -c client_encoding=UTF8"})
+            kwargs={"row_factory": dict_row, "options": "-c search_path=esg,public -c client_encoding=UTF8 -c esg.via_app=on"})
     return _pool
 
 

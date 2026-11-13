@@ -128,9 +128,10 @@ and `build/esg_schemas.json` into `db/01_schema.sql` and `app/esg_schemas.json`.
 - *Water footprint* (GRI 303): `water_record` holds withdrawal, discharge and recycled volumes by source and entity. KPIs:
   withdrawal, consumption (withdrawal less discharge) and recycled share, mapped to GRI 303-3 and 303-5.
   Not yet modelled: per-source water-stress classification, quality of discharge against permit limits.
+- *Direct-change audit*: a trigger on the data tables logs SQL run outside the app (see limits).
 - Migrations are tracked in `esg.schema_migration` and applied at startup.
 
-**Not yet built (planned rounds):** per-framework completeness, DB-level audit triggers on every table, AI document classification and anomaly
+**Not yet built (planned rounds):** per-framework completeness, AI document classification and anomaly
 detection, data-logger connectors, report templates, ISO 14001 / 50001 workflows. Vendor ontology size, patents,
 SOC 2 and 24/7 support cannot be matched by code alone.
 
@@ -138,8 +139,10 @@ SOC 2 and 24/7 support cannot be matched by code alone.
 
 - Auth is email + password with signed tokens. No SSO, MFA, lockout or rate limiting yet; put it behind your
   reverse proxy / identity provider and TLS.
-- Audit entries are written by the application. Direct SQL changes to data tables are not audited (the audit
-  table itself rejects edits and deletes).
+- The application writes detailed audit entries. Direct SQL changes to data tables are also logged by a database trigger
+  (actor `db:<user>`, before/after row), except bulk sensor, AIS and calculation-output tables. A database user who
+  deliberately sets `esg.via_app = on` bypasses it; restrict who can connect as the owner role. The audit table itself
+  rejects edits and deletes.
 - High-volume tables (meter, AIS, sensor readings) are plain tables: partition by month at scale.
 - Evidence files are stored on local disk (`EVIDENCE_DIR`); use a persistent volume or object storage.
 - Alert evaluation runs inside each app process: run one instance, or move `alerts.evaluate_all` to a single scheduler.
@@ -162,7 +165,7 @@ SOC 2 and 24/7 support cannot be matched by code alone.
 ```bash
 DATABASE_URL=postgresql://... pytest -q tests
 ```
-36 tests cover role boundaries, ingestion edge cases, four-eyes, audit immutability, calculation arithmetic
+37 tests cover role boundaries, ingestion edge cases, four-eyes, audit immutability, calculation arithmetic
 against independent queries, rejected-record exclusion, KPI formulas, exports, alert de-duplication,
 auto-resolve, webhook delivery, and rule-parameter injection guards, period locks, collection links, source trace, and the evidence flow
 (OCR of a synthetic meter photo, flags, atomic linking, rollover, derived consumption, field-operator limits).
