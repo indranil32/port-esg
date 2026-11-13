@@ -11,6 +11,9 @@ param prefix string = 'esg'
 
 param location string = resourceGroup().location
 
+@description('Region for PostgreSQL. Trial subscriptions often cannot create it in every region, so it can differ from the app region.')
+param dbLocation string = location
+
 @description('Container image to run, e.g. myregistry.azurecr.io/port-esg:1.0. Leave the default for a first deploy, then update.')
 param image string = 'mcr.microsoft.com/k8se/quickstart:latest'
 
@@ -93,8 +96,8 @@ resource evidence 'Microsoft.Storage/storageAccounts/blobServices/containers@202
 
 // ---------------------------------------------------------------- database
 resource pg 'Microsoft.DBforPostgreSQL/flexibleServers@2024-08-01' = {
-  name: 'psql-${prefix}-${uniq}'
-  location: location
+  name: 'psql-${prefix}-${uniq}-${dbLocation}'
+  location: dbLocation
   sku: { name: dbSku, tier: dbTier }
   properties: {
     version: '16'
