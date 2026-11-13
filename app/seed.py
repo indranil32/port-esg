@@ -545,9 +545,20 @@ def apply_migrations(c):
             c.execute("INSERT INTO esg.schema_migration (name) VALUES (%s)", (f.name,))
 
 
+def load_base_schema(c):
+    """Empty database (e.g. a new Azure PostgreSQL server): create the schema from the shipped DDL."""
+    if db.row(c, "SELECT to_regclass('esg.app_user') AS t")["t"]:
+        return False
+    d = Path(__file__).resolve().parent.parent / "db"
+    for name in ("01_schema.sql", "02_schema_ext.sql"):
+        c.execute((d / name).read_text())
+    return True
+
+
 def ensure_initial_data():
     """Called at startup. Seeds reference data, then either demo data or just an admin user."""
     with db.conn() as c:
+        load_base_schema(c)
         apply_migrations(c)
         seed_reference(c)
         if db.row(c, "SELECT 1 FROM app_user LIMIT 1"):

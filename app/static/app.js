@@ -91,13 +91,22 @@ const NAV = [
 ];
 const ROUTES = { trace: (v) => traceView(v), field, dashboard, emissions, kpis, disclosures, capture, approvals, alerts, audit, admin };
 function logout() { localStorage.removeItem("esg_token"); S.token = null; S.user = null; renderLogin(); }
-function renderLogin(err) {
+async function renderLogin(err) {
+  let cf = { entra: false, local: true };
+  try { cf = await fetch("/api/auth/config").then(r => r.json()); } catch (_) {}
   $("#app").innerHTML = `<div class="login"><div class="card"><h1>ESG System of Record</h1><p class="muted">Sign in to continue.</p>
-    <form data-form="login"><div class="field"><label>Email</label><input name="email" type="email" required autofocus autocomplete="username"></div>
+    ${cf.entra ? `<a class="btn primary" style="display:block;text-align:center;text-decoration:none;margin-bottom:12px" href="${cf.entra_login_url}">Sign in with Microsoft</a>` : ""}
+    ${cf.entra && cf.local ? `<p class="muted small" style="text-align:center">or with a local account</p>` : ""}
+    ${cf.local ? `<form data-form="login"><div class="field"><label>Email</label><input name="email" type="email" required ${cf.entra ? "" : "autofocus"} autocomplete="username"></div>
     <div class="field"><label>Password</label><input name="password" type="password" required autocomplete="current-password"></div>
-    ${err ? `<p class="err-list" style="margin-left:0">${esc(err)}</p>` : ""}<button class="primary" style="width:100%">Sign in</button></form></div></div>`;
+    <button class="primary" style="width:100%">Sign in</button></form>` : ""}
+    ${err ? `<p class="err-list" style="margin-left:0">${esc(err)}</p>` : ""}</div></div>`;
 }
 async function boot() {
+  const m = location.hash.match(/^#sso=(.+)$/);
+  if (m) { S.token = m[1]; localStorage.setItem("esg_token", S.token); history.replaceState(null, "", location.pathname); }
+  const er = location.hash.match(/^#sso_error=(.+)$/);
+  if (er) { history.replaceState(null, "", location.pathname); return renderLogin(decodeURIComponent(er[1])); }
   if (!S.token) return renderLogin();
   try { S.user = await api("/auth/me"); } catch (_) { return renderLogin(); }
   if (!["tenant", "field_operator"].includes(S.user.role)) { try { S.sample = (await api("/entities")).some(e => /SAMPLE DATA/.test(e.name)); } catch (_) {} }

@@ -19,6 +19,8 @@ from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
 from fastapi.responses import FileResponse
+
+from . import storage
 from PIL import Image, ImageOps
 from psycopg.types.json import Jsonb
 from pydantic import BaseModel
@@ -283,10 +285,8 @@ def process_image(c, email, data, meter_id=None, client_at=None, gps_lat=None, g
                     (gps_lat, gps_lon, "browser" if gps_lat is not None else None)
     fl = capture_flags(c, sha=sha, phash=ph, taken_at=exif.get("taken_at"), client_at=client_at,
                        has_gps=lat is not None, ocr_res=res, cands=cands, meter=meter, now=now)
-    EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)
     ext = {"jpeg": "jpg", "png": "png", "webp": "webp"}[fmt]
-    path = EVIDENCE_DIR / f"{sha[:24]}.{ext}"
-    path.write_bytes(data)
+    path = storage.save(f"{sha[:24]}.{ext}", data, f"image/{fmt}")
     doc = db.row(c, "INSERT INTO evidence_document (file_uri, sha256, mime_type, description, uploaded_by) "
                     "VALUES (%s,%s,%s,%s,%s) RETURNING doc_id",
                  (str(path), sha, f"image/{fmt}", "Field photo" + (f" - {meter['meter_code']}" if meter else ""), email))
@@ -375,9 +375,9 @@ def get_image(capture_id: str, user: dict = Depends(current_user)):
     with db.conn() as c:
         cap = db.row(c, "SELECT ec.captured_by, d.file_uri, d.mime_type FROM evidence_capture ec "
                         "JOIN evidence_document d ON d.doc_id = ec.doc_id WHERE ec.capture_id::text = %s", (capture_id,))
-    if not cap or user["role"] == "tenant" or not _owner_or_reviewer(user, cap) or not Path(cap["file_uri"]).exists():
+    if not cap or user["role"] == "tenant" or not _owner_or_reviewer(user, cap):
         raise HTTPException(404, "Image not found")
-    return FileResponse(cap["file_uri"], media_type=cap["mime_type"], headers={"Cache-Control": "private, max-age=3600"})
+    return storage.respond(cap["file_uri"], cap["mime_type"], {"Cache-Control": "private, max-age=3600"})
 
 
 # --------------------------------------------------------------------------- link

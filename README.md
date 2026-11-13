@@ -32,6 +32,14 @@ Reference & setup, or CSV). Without emission factors the calculation reports the
 Local development without Docker: load `db/01_schema.sql` then `db/02_schema_ext.sql` into a Postgres 13+
 database, `pip install -r requirements.txt`, set `DATABASE_URL`, then `uvicorn app.main:app`.
 
+## Azure deployment and Microsoft sign-in
+
+Single sign-on (Entra ID), Azure Blob evidence storage, Azure PostgreSQL and a Bicep template are in place and
+configured entirely through settings, so a personal subscription can be swapped for the company's without code changes.
+See [docs/azure-deploy.md](docs/azure-deploy.md). The template is in `infra/` and compiles cleanly with Bicep; it has not
+been deployed from this environment (no Azure access here), so expect to fix small things on the first real run.
+Sign-in is tested against a simulated identity provider and storage against a fake blob container, not against live Azure.
+
 ## What it does
 
 **Capture.** 37 tables across operations, energy, environment, people and safety, governance, third parties.

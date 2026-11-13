@@ -19,7 +19,8 @@ from pydantic import BaseModel
 
 from . import db
 from .auth import require
-from .capture import EVIDENCE_DIR, ingest_records
+from . import storage
+from .capture import ingest_records
 
 admin = APIRouter(prefix="/api/collect-links")
 public = APIRouter(prefix="/api/collect")
@@ -161,10 +162,8 @@ def submit(request: Request, response: Response, entries: str = Form(...), file:
         if data:
             import hashlib as h
             sha = h.sha256(data).hexdigest()
-            EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)
             name = "".join(ch for ch in (file.filename or "file") if ch.isalnum() or ch in "._-")[:60] or "file"
-            path = EVIDENCE_DIR / f"{sha[:16]}_{name}"
-            path.write_bytes(data)
+            path = storage.save(f"{sha[:16]}_{name}", data, file.content_type)
             doc = db.row(c, "INSERT INTO evidence_document (file_uri, sha256, mime_type, description, uploaded_by) VALUES (%s,%s,%s,%s,%s) RETURNING doc_id",
                          (str(path), sha, file.content_type, f"Attachment sent through collection link {label}", label))
             for r in recs:

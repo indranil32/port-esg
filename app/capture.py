@@ -10,6 +10,8 @@ from pathlib import Path
 import psycopg
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile
 from fastapi.responses import FileResponse
+
+from . import storage
 from jsonschema import Draft202012Validator, FormatChecker
 from pydantic import BaseModel
 
@@ -357,10 +359,8 @@ async def upload_evidence(file: UploadFile = File(...), description: str = "", u
     if len(data) > 25 * 1024 * 1024:
         raise HTTPException(413, "File too large (25 MB max)")
     sha = hashlib.sha256(data).hexdigest()
-    EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)
     safe = "".join(ch for ch in (file.filename or "file") if ch.isalnum() or ch in "._-") or "file"
-    path = EVIDENCE_DIR / f"{sha[:16]}_{safe}"
-    path.write_bytes(data)
+    path = storage.save(f"{sha[:16]}_{safe}", data, file.content_type)
     with db.conn() as c:
         res = db.row(c, "INSERT INTO evidence_document (file_uri, sha256, mime_type, description, uploaded_by) "
                         "VALUES (%s,%s,%s,%s,%s) RETURNING doc_id", (str(path), sha, file.content_type, description, user["email"]))
@@ -371,10 +371,10 @@ async def upload_evidence(file: UploadFile = File(...), description: str = "", u
 @router.get("/evidence/{doc_id}")
 def download_evidence(doc_id: str, user: dict = Depends(require("esg_admin", "data_owner", "auditor"))):
     with db.conn() as c:
-        d = db.row(c, "SELECT file_uri FROM evidence_document WHERE doc_id = %s", (doc_id,))
-    if not d or not Path(d["file_uri"]).exists():
+        d = db.row(c, "SELECT file_uri, mime_type FROM evidence_document WHERE doc_id = %s", (doc_id,))
+    if not d:
         raise HTTPException(404, "File not found")
-    return FileResponse(d["file_uri"])
+    return storage.respond(d["file_uri"], d.get("mime_type"))
 
 
 # --------------------------------------------------------------------------- validation workflow

@@ -11,7 +11,7 @@ from fastapi.concurrency import run_in_threadpool
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from . import alerts, auth, batches, compliance, imports, ems, capture, collect, db, evidence, periods, reports, seed, trace
+from . import alerts, auth, entra, batches, compliance, imports, ems, capture, collect, db, evidence, periods, reports, seed, trace
 from .auth import current_user, require
 
 log = logging.getLogger("esg")
@@ -58,6 +58,7 @@ app.include_router(collect.admin)
 app.include_router(collect.public)
 app.include_router(reports.router)
 app.include_router(alerts.router)
+app.include_router(entra.router)
 
 
 @app.get("/api/health")
@@ -75,6 +76,8 @@ class Login(BaseModel):
 
 @app.post("/api/auth/login")
 def login(body: Login):
+    if not entra.local_login_enabled():
+        raise HTTPException(403, "Password sign-in is turned off. Use Microsoft sign-in.")
     with db.conn() as c:
         u = db.row(c, "SELECT * FROM app_user WHERE lower(email) = lower(%s)", (body.email.strip(),))
         if not u or not u["active"] or not auth.verify_password(body.password, u["password_hash"]):
