@@ -228,11 +228,13 @@ def notify(rule, alert) -> str:
         url = os.environ.get("ALERT_WEBHOOK_URL")
         if not url:
             parts.append("webhook: not configured")
+        elif not url.lower().startswith(("https://", "http://")):
+            parts.append("webhook: invalid url (http or https only)")
         else:
             try:
                 req = urllib.request.Request(url, json.dumps({"text": text, "title": alert["title"]}).encode(),
                                              {"Content-Type": "application/json"})
-                urllib.request.urlopen(req, timeout=5).read()
+                urllib.request.urlopen(req, timeout=5).read()  # nosec B310
                 parts.append("webhook: sent")
             except Exception as e:  # delivery problems must never break evaluation
                 parts.append(f"webhook: failed ({type(e).__name__})")

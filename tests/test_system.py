@@ -1,5 +1,5 @@
 import http.server, json, threading, uuid
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, timezone
 
 import pytest
 from app import alerts, db

@@ -7,12 +7,10 @@ Only a SHA-256 of the token is stored. The token travels in a header, never in a
 logs. Transport security (HTTPS) is the deployment's job."""
 import hashlib
 import json
-import os
 import secrets
 import time
 from collections import defaultdict, deque
 from datetime import date, datetime, timedelta, timezone
-from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, Request, Response, UploadFile
 from pydantic import BaseModel

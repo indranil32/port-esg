@@ -1,7 +1,6 @@
 """ESG system of record: FastAPI application entry point."""
 import asyncio
 import logging
-import os
 import uuid
 from contextlib import asynccontextmanager
 from pathlib import Path

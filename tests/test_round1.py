@@ -272,7 +272,7 @@ def test_direct_database_changes_are_audited(client, H):
         {"entity_id": ent, "waste_type": tag, "quantity_kg": 10, "manifest_date": "2020-09-01", "source_record_id": tag}]}).json()
     rid = r["ids"][0]
     def log():
-        return client.get(f"/api/audit-log?table=waste_manifest&limit=500", headers=H["auditor"]).json()
+        return client.get("/api/audit-log?table=waste_manifest&limit=500", headers=H["auditor"]).json()
     assert len([a for a in log() if a["record_id"] == rid]) == 1            # the app writes its own row; the trigger stays quiet
     with psycopg.connect(os.environ["DATABASE_URL"], autocommit=True, options="-c search_path=esg,public") as raw:
         raw.execute("UPDATE waste_manifest SET quantity_kg = 99 WHERE manifest_id::text = %s", (rid,))

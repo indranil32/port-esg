@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from . import db
-from .auth import current_user, require
+from .auth import require
 
 router = APIRouter(prefix="/api/periods")
 

@@ -9,7 +9,6 @@ from pathlib import Path
 
 import psycopg
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile
-from fastapi.responses import FileResponse
 
 from . import storage
 from jsonschema import Draft202012Validator, FormatChecker
