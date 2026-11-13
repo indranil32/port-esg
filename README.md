@@ -140,6 +140,10 @@ and `build/esg_schemas.json` into `db/01_schema.sql` and `app/esg_schemas.json`.
   second person) and *energy baselines* (monthly consumption regressed on TEU or vessel calls; later months compared with the
   expected level, current month excluded). Overdue items, permits expiring within 60 days and non-compliance raise alerts.
   Still not built: document control, operational inspections, permit limit exceedance checks, significant-energy-user ranking.
+- *CSV loading by code*: CSV and API rows take codes (`entity_code`, `meter_code`, `asset_code`, `tenant_name`, `metric_code` ...) instead of UUIDs.
+  A downloadable template pack (`/api/templates.zip`: header-only templates, loadable example rows, data dictionary, table index) is on the
+  Data capture CSV tab. Admins can also import the metric library, framework mappings and legal register by CSV (Admin page).
+  Still one-at-a-time: EMS objectives, actions and audits, evidence documents. Utility bills are stored but not read automatically.
 - Migrations are tracked in `esg.schema_migration` and applied at startup.
 
 **Not yet built (planned rounds):** per-framework completeness, AI document classification, data-logger connectors, report templates. Vendor ontology size, patents,
@@ -175,7 +179,7 @@ SOC 2 and 24/7 support cannot be matched by code alone.
 ```bash
 DATABASE_URL=postgresql://... pytest -q tests
 ```
-42 tests cover role boundaries, ingestion edge cases, four-eyes, audit immutability, calculation arithmetic
+44 tests cover role boundaries, ingestion edge cases, four-eyes, audit immutability, calculation arithmetic
 against independent queries, rejected-record exclusion, KPI formulas, exports, alert de-duplication,
 auto-resolve, webhook delivery, and rule-parameter injection guards, period locks, collection links, source trace, and the evidence flow
 (OCR of a synthetic meter photo, flags, atomic linking, rollover, derived consumption, field-operator limits).

@@ -400,3 +400,57 @@ def test_enpi_regression_and_baseline(client, H):
         assert p["months"] and "note" in p
     else:
         assert ok.status_code == 422        # demo data has under 6 months this early in the year
+
+
+# ------------------------------------------------------------------ template pack, code lookups, reference imports
+def test_template_pack_and_code_lookups(client, H):
+    import io as _io, zipfile
+    z = client.get("/api/templates.zip", headers=H["owner"])
+    assert z.status_code == 200
+    zf = zipfile.ZipFile(_io.BytesIO(z.content))
+    names = set(zf.namelist())
+    assert {"templates/fuel_transaction.csv", "examples/fuel_transaction_example.csv", "data_dictionary.csv", "README.txt", "table_index.csv"} <= names
+    head = zf.read("templates/fuel_transaction.csv").decode().splitlines()[0].split(",")
+    assert "entity_code" in head and "entity_id" not in head and "validation_status" not in head and "txn_id" not in head
+    assert "litres" in zf.read("data_dictionary.csv").decode()
+    assert client.get("/api/templates/nonsense.csv", headers=H["owner"]).status_code == 404
+    assert client.get("/api/templates/emission_factor.csv", headers=H["owner"]).status_code == 404      # admin-only table
+    # the example row loads as it is, and a CSV with a code instead of a UUID loads too
+    ex = client.get("/api/templates/fuel_transaction.csv?example=true", headers=H["owner"]).text
+    hdr, row = ex.strip().splitlines()[:2]
+    cols = hdr.split(",")
+    vals = row.split(",")
+    code = vals[cols.index("entity_code")]
+    if "source_record_id" in cols:
+        vals[cols.index("source_record_id")] = "tpl-" + UNIQ()
+    csv_text = hdr + "\n" + ",".join(vals[:cols.index("litres")] + ["12"] + vals[cols.index("litres") + 1:]).replace(vals[cols.index("ts")], f"2020-10-{1 + int(UNIQ(), 16) % 28:02d}T08:{int(UNIQ(), 16) % 60:02d}:{int(UNIQ(), 16) % 60:02d}+00:00") + "\n"
+    r = client.post("/api/ingest/fuel_transaction/csv", headers=H["owner"], files={"file": ("f.csv", csv_text.encode(), "text/csv")})
+    assert r.status_code == 200 and r.json()["inserted"] == 1, r.text
+    assert r.json()["batch_id"]
+    bad = client.post("/api/ingest/fuel_transaction/csv", headers=H["owner"], files={"file": ("f.csv", csv_text.replace(code, "NO-SUCH-CODE").encode(), "text/csv")}).json()
+    assert bad["inserted"] == 0 and "NO-SUCH-CODE" in bad["errors"][0]["error"]
+    # the JSON API takes codes as well
+    ok = client.post("/api/ingest/fuel_transaction", headers=H["owner"], json={"records": [
+        {"entity_code": code, "fuel_type": "diesel", "litres": 3, "ts": "2020-10-06T08:00:00Z", "source_record_id": "code-" + UNIQ()}]}).json()
+    assert ok["inserted"] == 1
+
+
+def test_reference_imports(client, H):
+    code = "M_" + UNIQ().upper()
+    m = f"metric_code,name,pillar,unit,frequency,source_classes\n{code},Test metric,E,m3,monthly,G_manual|B_energy\nBAD,x,Q,,,\n"
+    r = client.post("/api/import/metrics", headers=H["admin"], files={"file": ("m.csv", m.encode(), "text/csv")}).json()
+    assert r["added"] == 1 and len(r["errors"]) == 1
+    again = client.post("/api/import/metrics", headers=H["admin"], files={"file": ("m.csv", m.encode(), "text/csv")}).json()
+    assert again["added"] == 0 and again["updated"] == 1
+    assert client.post("/api/import/metrics", headers=H["owner"], files={"file": ("m.csv", m.encode(), "text/csv")}).status_code == 403
+    fw = f"framework_code,framework_name,disclosure_code,title,metric_codes\nTESTFW,Test framework,T-1,First,{code}|NOPE\n"
+    f = client.post("/api/import/framework-map", headers=H["admin"], files={"file": ("f.csv", fw.encode(), "text/csv")}).json()
+    assert f["disclosures"] == 1 and f["new_mappings"] == 1 and "NOPE" in f["errors"][0]["error"]
+    ref = "IMP-" + UNIQ()
+    ent = client.get("/api/records/entity?limit=1", headers=H["admin"]).json()["rows"][0]
+    lg = f"ref,title,kind,authority,entity_code,permit_expiry\n{ref},Imported permit,permit,EAD,{ent['code']},2027-01-01\n{ref}2,Bad kind,nonsense,,,\n"
+    l = client.post("/api/import/legal", headers=H["admin"], files={"file": ("l.csv", lg.encode(), "text/csv")}).json()
+    assert l["added"] == 1 and len(l["errors"]) == 1
+    assert any(x["ref"] == ref for x in client.get("/api/ems/legal", headers=H["auditor"]).json())
+    miss = client.post("/api/import/legal", headers=H["admin"], files={"file": ("l.csv", b"ref,title\nx,y\n", "text/csv")})
+    assert miss.status_code == 400

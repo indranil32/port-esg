@@ -13,7 +13,7 @@ from fastapi.responses import FileResponse
 from jsonschema import Draft202012Validator, FormatChecker
 from pydantic import BaseModel
 
-from . import batches, db, evidence
+from . import batches, db, evidence, imports
 from .auth import current_user, require
 
 router = APIRouter(prefix="/api")
@@ -171,8 +171,13 @@ def ingest_records(c, user, table, records, source_code):
             raise HTTPException(400, f"Unknown source_system_code '{source_code}'")
     pks = pk_cols(c, table)
     inserted, errors, dups = [], [], 0
+    code_cache = {}
     for i, raw in enumerate(records):
         rec = {k: v for k, v in dict(raw).items() if k not in CLIENT_FORBIDDEN}
+        bad = imports.resolve_codes(c, props, rec, code_cache)
+        if bad:
+            errors.append({"index": i, "error": bad})
+            continue
         if table == "tenant_esg_submission":
             for k in SUBMISSION_FORBIDDEN:
                 rec.pop(k, None)
@@ -234,16 +239,17 @@ async def ingest_csv(table: str, file: UploadFile = File(...), user: dict = Depe
     text = (await file.read()).decode("utf-8-sig")
     reader = csv.DictReader(io.StringIO(text))
     props = SCHEMAS[table]["properties"]
-    unknown = [h for h in (reader.fieldnames or []) if h not in props]
+    alias = imports.aliases_for(props)
+    unknown = [h for h in (reader.fieldnames or []) if h not in props and h not in alias]
     if unknown:
-        raise HTTPException(400, f"Unknown columns: {', '.join(unknown)}. Allowed: {', '.join(props)}")
+        raise HTTPException(400, f"Unknown columns: {', '.join(unknown)}. Allowed: {', '.join(list(props) + list(alias))}")
     records, errors = [], []
     for i, line in enumerate(reader):
         rec = {}
         try:
             for k, v in line.items():
                 if v is not None and v.strip() != "":
-                    rec[k] = coerce(props[k], v)
+                    rec[k] = v.strip() if k in alias else coerce(props[k], v)
             records.append(rec)
         except ValueError as e:
             errors.append({"index": i, "error": f"row {i + 2}: {e}"})

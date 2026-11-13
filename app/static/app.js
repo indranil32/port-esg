@@ -278,9 +278,9 @@ function showResult(res) {
 }
 function csvTab(sch) {
   const props = Object.keys(sch.schema.properties).filter(k => !HIDDEN.has(k) && !(sch.pk.includes(k) && !(sch.schema.required || []).includes(k)));
-  $("#cap-body").innerHTML = `<p class="muted small">First row must be column names. Arrays use <code>|</code> between values. Dates as YYYY-MM-DD, timestamps as ISO 8601 (UTC).</p>
+  $("#cap-body").innerHTML = `<p class="muted small">First row must be column names. Use codes (terminal code, meter code, tenant name) in the <code>_code</code> / <code>_name</code> columns; no internal IDs are needed. Arrays use <code>|</code> between values. Dates as YYYY-MM-DD, timestamps as ISO 8601 (UTC).</p>
     <p class="small"><b>Columns:</b> ${props.map(k => `<code>${k}${(sch.schema.required || []).includes(k) ? "*" : ""}</code>`).join(" ")}</p>
-    <div class="row" style="margin:10px 0"><button data-act="template">Download template</button><input type="file" id="csvfile" accept=".csv,text/csv"><button class="primary" data-act="uploadCsv">Upload</button></div><div id="cap-result"></div>`;
+    <div class="row" style="margin:10px 0"><button data-act="template">Download template</button><button data-act="templateExample">Example row</button><button data-act="templatePack">All templates + data dictionary</button><input type="file" id="csvfile" accept=".csv,text/csv"><button class="primary" data-act="uploadCsv">Upload</button></div><div id="cap-result"></div>`;
 }
 async function recentTab(sch) {
   const r = await api(`/records/${CAP.table}?limit=15`);
@@ -451,7 +451,9 @@ const ACT = {
   annual: () => guard(() => download("/reports/annual.html", "", true)),
   pickTable: el => { CAP.table = el.dataset.t; CAP.tab = "form"; drawTableList(); guard(drawCapture); },
   capTab: el => { CAP.tab = el.dataset.t; guard(drawCapture); },
-  template: () => { const b = new Blob([visibleFields(CAP.sch).map(([k]) => k).join(",") + "\n"], { type: "text/csv" }); const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = CAP.table + "_template.csv"; a.click(); },
+  template: () => guard(() => download(`/templates/${CAP.table}.csv`, CAP.table + "_template.csv")),
+  templateExample: () => guard(() => download(`/templates/${CAP.table}.csv?example=true`, CAP.table + "_example.csv")),
+  templatePack: () => guard(() => download("/templates.zip", "esg_csv_template_pack.zip")),
   uploadCsv: () => guard(async () => { const f = $("#csvfile").files[0]; if (!f) return toast("Choose a CSV file first", true); const fd = new FormData(); fd.append("file", f);
     const res = await api(`/ingest/${CAP.table}/csv`, { method: "POST", form: fd }); $("#cap-result").innerHTML = showResult(res); }),
   editRec: el => editRec(+el.dataset.i),
