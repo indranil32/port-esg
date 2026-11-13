@@ -33,7 +33,7 @@ jobs:
           --health-cmd "pg_isready -U esg" --health-interval 5s --health-timeout 5s --health-retries 10
     env:
       DATABASE_URL: postgresql://esg:esg@localhost:5432/esg
-      EVIDENCE_DIR: ${{ runner.temp }}/evidence
+      EVIDENCE_DIR: /tmp/evidence
       SEED_DEMO_DATA: "true"
       APP_SECRET: ci-secret
       ALERT_INTERVAL_SEC: "0"
