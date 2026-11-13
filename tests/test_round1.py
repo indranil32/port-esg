@@ -5,6 +5,7 @@ from datetime import date, datetime, timedelta, timezone
 import pytest
 
 from app import db
+from tests.conftest import BASE_URL
 from tests.test_evidence import NOW, UNIQ, new_meter, photo, upload
 
 PERIOD = ("2020-03-01", "2020-03-31")          # factors are valid from 2020-01-01; keeps clear of current-year tests
@@ -12,6 +13,9 @@ PERIOD = ("2020-03-01", "2020-03-31")          # factors are valid from 2020-01-
 
 @pytest.fixture(autouse=True)
 def no_stale_locks():
+    if BASE_URL:        # deployed instance: no direct database access from the test runner
+        yield
+        return
     with db.conn() as c:
         c.execute("UPDATE reporting_period_lock SET unlocked_by = 'test', unlocked_at = now() WHERE unlocked_at IS NULL")
     yield
