@@ -9,4 +9,4 @@ COPY app ./app
 COPY db/01_schema.sql db/02_schema_ext.sql ./db/
 COPY db/migrations ./db/migrations
 EXPOSE 8000
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "*"]
