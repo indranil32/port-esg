@@ -1,0 +1,5416 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.org/esg/schemas/esg.bundle.schema.json",
+  "title": "Port ESG data model: JSON Schema bundle",
+  "description": "Ingestion batch envelope: one table, many records.",
+  "type": "object",
+  "properties": {
+    "source_system_code": {
+      "type": "string"
+    },
+    "batch_id": {
+      "type": "string"
+    },
+    "sent_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "table": {
+      "enum": [
+        "source_system",
+        "entity",
+        "evidence_document",
+        "tenant",
+        "vessel",
+        "berth",
+        "vessel_call",
+        "asset",
+        "ais_position",
+        "container_move",
+        "gate_transaction",
+        "meter",
+        "meter_register_reading",
+        "energy_meter_reading",
+        "fuel_transaction",
+        "shore_power_session",
+        "refrigerant_event",
+        "sensor",
+        "air_quality_reading",
+        "water_quality_reading",
+        "noise_reading",
+        "weather_observation",
+        "environmental_incident",
+        "spend_record",
+        "utility_invoice",
+        "employee_snapshot",
+        "training_record",
+        "hours_worked",
+        "safety_incident",
+        "risk",
+        "policy",
+        "audit_finding",
+        "certification",
+        "framework",
+        "framework_requirement",
+        "metric",
+        "metric_requirement_map",
+        "emission_factor",
+        "climate_hazard",
+        "tenant_esg_submission",
+        "shipping_line_data",
+        "waste_manifest",
+        "community_grievance",
+        "survey_response",
+        "calc_run",
+        "kpi_target",
+        "ghg_activity_data",
+        "ghg_emission",
+        "kpi_value"
+      ]
+    },
+    "records": {
+      "type": "array",
+      "minItems": 1
+    }
+  },
+  "required": [
+    "source_system_code",
+    "batch_id",
+    "table",
+    "records"
+  ],
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "source_system"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/source_system"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "entity"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/entity"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "evidence_document"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/evidence_document"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "tenant"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/tenant"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "vessel"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/vessel"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "berth"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/berth"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "vessel_call"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/vessel_call"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "asset"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/asset"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "ais_position"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/ais_position"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "container_move"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/container_move"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "gate_transaction"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/gate_transaction"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "meter"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/meter"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "meter_register_reading"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/meter_register_reading"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "energy_meter_reading"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/energy_meter_reading"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "fuel_transaction"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/fuel_transaction"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "shore_power_session"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/shore_power_session"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "refrigerant_event"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/refrigerant_event"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "sensor"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/sensor"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "air_quality_reading"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/air_quality_reading"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "water_quality_reading"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/water_quality_reading"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "noise_reading"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/noise_reading"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "weather_observation"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/weather_observation"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "environmental_incident"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/environmental_incident"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "spend_record"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/spend_record"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "utility_invoice"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/utility_invoice"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "employee_snapshot"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/employee_snapshot"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "training_record"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/training_record"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "hours_worked"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/hours_worked"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "safety_incident"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/safety_incident"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "risk"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/risk"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "policy"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/policy"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "audit_finding"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/audit_finding"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "certification"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/certification"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "framework"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/framework"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "framework_requirement"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/framework_requirement"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "metric"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/metric"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "metric_requirement_map"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/metric_requirement_map"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "emission_factor"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/emission_factor"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "climate_hazard"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/climate_hazard"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "tenant_esg_submission"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/tenant_esg_submission"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "shipping_line_data"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/shipping_line_data"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "waste_manifest"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/waste_manifest"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "community_grievance"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/community_grievance"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "survey_response"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/survey_response"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "calc_run"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/calc_run"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "kpi_target"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/kpi_target"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "ghg_activity_data"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/ghg_activity_data"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "ghg_emission"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/ghg_emission"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "table": {
+            "const": "kpi_value"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "then": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/kpi_value"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "source_system": {
+      "title": "source_system",
+      "description": "Registry of every system or channel that feeds the platform, classified A-H.",
+      "type": "object",
+      "properties": {
+        "source_system_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "code": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "source_class": {
+          "type": "string",
+          "enum": [
+            "A_operations",
+            "B_energy",
+            "C_environment",
+            "D_enterprise",
+            "E_third_party",
+            "F_reference",
+            "G_manual",
+            "H_derived"
+          ]
+        },
+        "ingestion_mode": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "api",
+            "stream",
+            "batch",
+            "iot",
+            "portal",
+            "manual",
+            null
+          ]
+        },
+        "refresh_frequency": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "owner": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "active": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "code",
+        "name",
+        "source_class"
+      ],
+      "additionalProperties": false
+    },
+    "entity": {
+      "title": "entity",
+      "description": "Organisational hierarchy: port > terminal > business unit / facility / tenant. Drives reporting boundaries.",
+      "type": "object",
+      "properties": {
+        "entity_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "parent_entity_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to entity.entity_id"
+        },
+        "entity_type": {
+          "type": "string",
+          "enum": [
+            "port",
+            "terminal",
+            "business_unit",
+            "facility",
+            "tenant"
+          ]
+        },
+        "code": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "operational_control": {
+          "type": "boolean"
+        },
+        "country_code": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "valid_from": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "valid_to": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        }
+      },
+      "required": [
+        "entity_type",
+        "code",
+        "name"
+      ],
+      "additionalProperties": false
+    },
+    "evidence_document": {
+      "title": "evidence_document",
+      "description": "Uploaded evidence (invoices, certificates, manifests) with content hash for audit.",
+      "type": "object",
+      "properties": {
+        "doc_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "file_uri": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "mime_type": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "uploaded_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "uploaded_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "file_uri"
+      ],
+      "additionalProperties": false
+    },
+    "tenant": {
+      "title": "tenant",
+      "description": "Tenants, concessionaires and contractors. operational_control decides Scope 1/2 vs Scope 3.",
+      "type": "object",
+      "properties": {
+        "tenant_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "entity_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "FK to entity.entity_id"
+        },
+        "name": {
+          "type": "string"
+        },
+        "tenant_type": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "terminal_operator",
+            "logistics",
+            "industrial",
+            "service",
+            "other",
+            null
+          ]
+        },
+        "contract_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "esg_clause": {
+          "type": "boolean"
+        },
+        "operational_control": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "entity_id",
+        "name"
+      ],
+      "additionalProperties": false
+    },
+    "vessel": {
+      "title": "vessel",
+      "description": "Vessel master data (IMO registry, class and engine particulars).",
+      "type": "object",
+      "properties": {
+        "imo_number": {
+          "type": "string"
+        },
+        "vessel_name": {
+          "type": "string"
+        },
+        "vessel_type": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "flag": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "gross_tonnage": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "dwt": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "teu_capacity": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "built_year": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "engine_type": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "main_engine_kw": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "aux_engine_kw": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "default_fuel_type": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "esi_score": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "cii_rating": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            null
+          ]
+        }
+      },
+      "required": [
+        "imo_number",
+        "vessel_name"
+      ],
+      "additionalProperties": false
+    },
+    "berth": {
+      "title": "berth",
+      "description": "Berths, with shore-power capability.",
+      "type": "object",
+      "properties": {
+        "berth_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "terminal_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "FK to entity.entity_id"
+        },
+        "berth_code": {
+          "type": "string"
+        },
+        "length_m": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "shore_power_capable": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "terminal_id",
+        "berth_code"
+      ],
+      "additionalProperties": false
+    },
+    "vessel_call": {
+      "title": "vessel_call",
+      "description": "One row per vessel call; the anchor for Scope 3 vessel emissions (TOS / PCS / berth planning).",
+      "type": "object",
+      "properties": {
+        "call_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "imo_number": {
+          "type": "string",
+          "description": "FK to vessel.imo_number"
+        },
+        "berth_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to berth.berth_id"
+        },
+        "terminal_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to entity.entity_id"
+        },
+        "voyage_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "eta": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "ata": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "atb": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "atd": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "hours_at_anchor": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "hours_at_berth": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "hours_manoeuvring": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "shore_power_connected": {
+          "type": "boolean"
+        },
+        "fuel_type_at_berth": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "cargo_tonnes": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "teu_moved": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "source_system_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to source_system.source_system_id"
+        },
+        "source_record_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ingested_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "data_quality": {
+          "type": "string",
+          "enum": [
+            "measured",
+            "estimated",
+            "manual",
+            "imputed"
+          ]
+        },
+        "validation_status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "validated",
+            "rejected"
+          ]
+        },
+        "version": {
+          "type": "integer"
+        },
+        "created_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "approved_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "imo_number"
+      ],
+      "additionalProperties": false
+    },
+    "asset": {
+      "title": "asset",
+      "description": "Port-owned equipment: cranes, RTGs, trucks, generators, buildings.",
+      "type": "object",
+      "properties": {
+        "asset_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "entity_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "FK to entity.entity_id"
+        },
+        "asset_code": {
+          "type": "string"
+        },
+        "asset_type": {
+          "type": "string",
+          "enum": [
+            "crane",
+            "rtg",
+            "truck",
+            "reach_stacker",
+            "vessel_owned",
+            "building",
+            "generator",
+            "other"
+          ]
+        },
+        "fuel_type": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "electrified": {
+          "type": "boolean"
+        },
+        "rated_kw": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "commissioned_date": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "decommissioned_date": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "active",
+            "standby",
+            "retired"
+          ]
+        }
+      },
+      "required": [
+        "entity_id",
+        "asset_code",
+        "asset_type"
+      ],
+      "additionalProperties": false
+    },
+    "ais_position": {
+      "title": "ais_position",
+      "description": "AIS position reports for approach and manoeuvring emission estimates. High volume: partition by month.",
+      "type": "object",
+      "properties": {
+        "position_id": {
+          "type": "integer"
+        },
+        "imo_number": {
+          "type": "string",
+          "description": "FK to vessel.imo_number"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "lat": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": -90,
+          "maximum": 90
+        },
+        "lon": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": -180,
+          "maximum": 180
+        },
+        "speed_knots": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "heading": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 360
+        },
+        "nav_status": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source_system_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to source_system.source_system_id"
+        },
+        "ingested_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "imo_number",
+        "ts"
+      ],
+      "additionalProperties": false
+    },
+    "container_move": {
+      "title": "container_move",
+      "description": "Container / cargo moves from the TOS, linked to equipment for per-asset energy intensity.",
+      "type": "object",
+      "properties": {
+        "move_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "call_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to vessel_call.call_id"
+        },
+        "equipment_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to asset.asset_id"
+        },
+        "container_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "move_type": {
+          "type": "string",
+          "enum": [
+            "load",
+            "discharge",
+            "restow",
+            "gate_in",
+            "gate_out"
+          ]
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "teu": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "weight_kg": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "source_system_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to source_system.source_system_id"
+        },
+        "source_record_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ingested_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "data_quality": {
+          "type": "string",
+          "enum": [
+            "measured",
+            "estimated",
+            "manual",
+            "imputed"
+          ]
+        },
+        "validation_status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "validated",
+            "rejected"
+          ]
+        },
+        "version": {
+          "type": "integer"
+        },
+        "created_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "approved_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "move_type",
+        "ts"
+      ],
+      "additionalProperties": false
+    },
+    "gate_transaction": {
+      "title": "gate_transaction",
+      "description": "Truck gate events; basis for turnaround time and idling emissions.",
+      "type": "object",
+      "properties": {
+        "txn_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "terminal_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "FK to entity.entity_id"
+        },
+        "truck_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "haulier_tenant_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to tenant.tenant_id"
+        },
+        "gate_in": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "gate_out": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "turnaround_min": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "container_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "truck_engine_class": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source_system_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to source_system.source_system_id"
+        },
+        "source_record_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ingested_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "data_quality": {
+          "type": "string",
+          "enum": [
+            "measured",
+            "estimated",
+            "manual",
+            "imputed"
+          ]
+        },
+        "validation_status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "validated",
+            "rejected"
+          ]
+        },
+        "version": {
+          "type": "integer"
+        },
+        "created_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "approved_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "terminal_id",
+        "gate_in"
+      ],
+      "additionalProperties": false
+    },
+    "meter": {
+      "title": "meter",
+      "description": "Meter registry. scope_boundary says whose consumption it is.",
+      "type": "object",
+      "properties": {
+        "meter_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "meter_code": {
+          "type": "string"
+        },
+        "entity_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "FK to entity.entity_id"
+        },
+        "asset_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to asset.asset_id"
+        },
+        "tenant_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to tenant.tenant_id"
+        },
+        "meter_type": {
+          "type": "string",
+          "enum": [
+            "electricity",
+            "fuel",
+            "water",
+            "gas",
+            "shore_power"
+          ]
+        },
+        "location_desc": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "scope_boundary": {
+          "type": "string",
+          "enum": [
+            "own",
+            "tenant",
+            "shared"
+          ]
+        },
+        "uom": {
+          "type": "string"
+        },
+        "energy_type": {
+          "type": "string",
+          "enum": [
+            "grid",
+            "solar",
+            "diesel_gen",
+            "shore_power",
+            "other"
+          ]
+        },
+        "multiplier": {
+          "type": "number",
+          "minimum": 0
+        },
+        "register_digits": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "meter_code",
+        "entity_id",
+        "meter_type",
+        "scope_boundary",
+        "uom"
+      ],
+      "additionalProperties": false
+    },
+    "meter_register_reading": {
+      "title": "meter_register_reading",
+      "description": "Cumulative register (odometer) readings keyed in or read from a photo by field operators. Consumption since the previous validated reading is derived into energy_meter_reading once approved.",
+      "type": "object",
+      "properties": {
+        "register_reading_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "meter_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "FK to meter.meter_id"
+        },
+        "read_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "register_value": {
+          "type": "number",
+          "minimum": 0
+        },
+        "uom": {
+          "type": "string"
+        },
+        "evidence_doc_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to evidence_document.doc_id"
+        },
+        "rollover": {
+          "type": "boolean"
+        },
+        "consumption_raw": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "derived_reading_id": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "note": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source_system_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to source_system.source_system_id"
+        },
+        "source_record_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ingested_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "data_quality": {
+          "type": "string",
+          "enum": [
+            "measured",
+            "estimated",
+            "manual",
+            "imputed"
+          ]
+        },
+        "validation_status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "validated",
+            "rejected"
+          ]
+        },
+        "version": {
+          "type": "integer"
+        },
+        "created_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "approved_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "meter_id",
+        "read_at",
+        "register_value",
+        "uom"
+      ],
+      "additionalProperties": false
+    },
+    "energy_meter_reading": {
+      "title": "energy_meter_reading",
+      "description": "Interval readings from smart meters / SCADA. High volume: partition by month or use a time-series extension.",
+      "type": "object",
+      "properties": {
+        "reading_id": {
+          "type": "integer"
+        },
+        "meter_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "FK to meter.meter_id"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "energy_kwh": {
+          "type": "number",
+          "minimum": 0
+        },
+        "energy_type": {
+          "type": "string",
+          "enum": [
+            "grid",
+            "solar",
+            "diesel_gen",
+            "shore_power",
+            "other"
+          ]
+        },
+        "data_quality": {
+          "type": "string",
+          "enum": [
+            "measured",
+            "estimated",
+            "manual",
+            "imputed"
+          ]
+        },
+        "source_system_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to source_system.source_system_id"
+        },
+        "ingested_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "meter_id",
+        "ts",
+        "energy_kwh",
+        "energy_type"
+      ],
+      "additionalProperties": false
+    },
+    "fuel_transaction": {
+      "title": "fuel_transaction",
+      "description": "Fuel dispensed to assets (Scope 1 mobile and stationary combustion).",
+      "type": "object",
+      "properties": {
+        "txn_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "asset_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to asset.asset_id"
+        },
+        "entity_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "FK to entity.entity_id"
+        },
+        "fuel_type": {
+          "type": "string"
+        },
+        "litres": {
+          "type": "number",
+          "minimum": 0
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "dispensing_point": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "cost": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "currency": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source_system_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to source_system.source_system_id"
+        },
+        "source_record_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ingested_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "data_quality": {
+          "type": "string",
+          "enum": [
+            "measured",
+            "estimated",
+            "manual",
+            "imputed"
+          ]
+        },
+        "validation_status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "validated",
+            "rejected"
+          ]
+        },
+        "version": {
+          "type": "integer"
+        },
+        "created_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "approved_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "entity_id",
+        "fuel_type",
+        "litres",
+        "ts"
+      ],
+      "additionalProperties": false
+    },
+    "shore_power_session": {
+      "title": "shore_power_session",
+      "description": "Shore-power (cold ironing) sessions per vessel call.",
+      "type": "object",
+      "properties": {
+        "session_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "call_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "FK to vessel_call.call_id"
+        },
+        "berth_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to berth.berth_id"
+        },
+        "start_ts": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "end_ts": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "kwh_delivered": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "peak_kw": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "source_system_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to source_system.source_system_id"
+        },
+        "source_record_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ingested_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "data_quality": {
+          "type": "string",
+          "enum": [
+            "measured",
+            "estimated",
+            "manual",
+            "imputed"
+          ]
+        },
+        "validation_status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "validated",
+            "rejected"
+          ]
+        },
+        "version": {
+          "type": "integer"
+        },
+        "created_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "approved_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "call_id",
+        "start_ts"
+      ],
+      "additionalProperties": false
+    },
+    "refrigerant_event": {
+      "title": "refrigerant_event",
+      "description": "Refrigerant top-ups from maintenance work orders (CMMS); basis for fugitive emissions.",
+      "type": "object",
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "asset_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to asset.asset_id"
+        },
+        "work_order_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "refrigerant_type": {
+          "type": "string"
+        },
+        "kg_added": {
+          "type": "number",
+          "minimum": 0
+        },
+        "event_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "source_system_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to source_system.source_system_id"
+        },
+        "source_record_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ingested_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "data_quality": {
+          "type": "string",
+          "enum": [
+            "measured",
+            "estimated",
+            "manual",
+            "imputed"
+          ]
+        },
+        "validation_status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "validated",
+            "rejected"
+          ]
+        },
+        "version": {
+          "type": "integer"
+        },
+        "created_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "approved_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "refrigerant_type",
+        "kg_added",
+        "event_date"
+      ],
+      "additionalProperties": false
+    },
+    "sensor": {
+      "title": "sensor",
+      "description": "Environmental sensor registry (air, water, noise, weather).",
+      "type": "object",
+      "properties": {
+        "sensor_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "sensor_code": {
+          "type": "string"
+        },
+        "sensor_type": {
+          "type": "string",
+          "enum": [
+            "air",
+            "water",
+            "noise",
+            "weather"
+          ]
+        },
+        "station_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "entity_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to entity.entity_id"
+        },
+        "lat": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": -90,
+          "maximum": 90
+        },
+        "lon": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": -180,
+          "maximum": 180
+        },
+        "calibration_date": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "owner": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "active": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "sensor_code",
+        "sensor_type"
+      ],
+      "additionalProperties": false
+    },
+    "air_quality_reading": {
+      "title": "air_quality_reading",
+      "description": "Air quality readings in ug/m3 (CO in mg/m3).",
+      "type": "object",
+      "properties": {
+        "reading_id": {
+          "type": "integer"
+        },
+        "sensor_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "FK to sensor.sensor_id"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "pm25": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "pm10": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "no2": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "so2": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "co": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "o3": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "quality_flag": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source_system_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to source_system.source_system_id"
+        },
+        "ingested_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "sensor_id",
+        "ts"
+      ],
+      "additionalProperties": false
+    },
+    "water_quality_reading": {
+      "title": "water_quality_reading",
+      "description": "Harbour / discharge water quality readings.",
+      "type": "object",
+      "properties": {
+        "reading_id": {
+          "type": "integer"
+        },
+        "sensor_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "FK to sensor.sensor_id"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "ph": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 14
+        },
+        "turbidity_ntu": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "dissolved_oxygen_mgl": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "temperature_c": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "hydrocarbon_ppm": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "quality_flag": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source_system_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to source_system.source_system_id"
+        },
+        "ingested_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "sensor_id",
+        "ts"
+      ],
+      "additionalProperties": false
+    },
+    "noise_reading": {
+      "title": "noise_reading",
+      "description": "Noise level readings in dB.",
+      "type": "object",
+      "properties": {
+        "reading_id": {
+          "type": "integer"
+        },
+        "sensor_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "FK to sensor.sensor_id"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "leq_db": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "lmax_db": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "quality_flag": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source_system_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to source_system.source_system_id"
+        },
+        "ingested_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "sensor_id",
+        "ts"
+      ],
+      "additionalProperties": false
+    },
+    "weather_observation": {
+      "title": "weather_observation",
+      "description": "Weather and tide observations used to normalise and contextualise readings.",
+      "type": "object",
+      "properties": {
+        "reading_id": {
+          "type": "integer"
+        },
+        "sensor_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "FK to sensor.sensor_id"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "temp_c": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "wind_speed_ms": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "wind_dir_deg": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 360
+        },
+        "humidity_pct": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100
+        },
+        "tide_level_m": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "source_system_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to source_system.source_system_id"
+        },
+        "ingested_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "sensor_id",
+        "ts"
+      ],
+      "additionalProperties": false
+    },
+    "environmental_incident": {
+      "title": "environmental_incident",
+      "description": "Spills, exceedances and odour events.",
+      "type": "object",
+      "properties": {
+        "incident_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "entity_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "FK to entity.entity_id"
+        },
+        "incident_type": {
+          "type": "string",
+          "enum": [
+            "spill",
+            "exceedance",
+            "odour",
+            "other"
+          ]
+        },
+        "occurred_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "location_desc": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "quantity": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "quantity_uom": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "severity": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "critical",
+            null
+          ]
+        },
+        "root_cause": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "open",
+            "investigating",
+            "closed"
+          ]
+        },
+        "regulator_notified": {
+          "type": "boolean"
+        },
+        "source_system_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to source_system.source_system_id"
+        },
+        "source_record_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ingested_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "data_quality": {
+          "type": "string",
+          "enum": [
+            "measured",
+            "estimated",
+            "manual",
+            "imputed"
+          ]
+        },
+        "validation_status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "validated",
+            "rejected"
+          ]
+        },
+        "version": {
+          "type": "integer"
+        },
+        "created_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "approved_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "entity_id",
+        "incident_type",
+        "occurred_at"
+      ],
+      "additionalProperties": false
+    },
+    "spend_record": {
+      "title": "spend_record",
+      "description": "Procurement spend (ERP) used for Scope 3 purchased goods and services.",
+      "type": "object",
+      "properties": {
+        "spend_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "entity_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to entity.entity_id"
+        },
+        "po_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "supplier_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "supplier_name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "category": {
+          "type": "string"
+        },
+        "material_code": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "quantity": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "uom": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "amount": {
+          "type": "number"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "spend_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "scope3_category": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 15
+        },
+        "source_system_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to source_system.source_system_id"
+        },
+        "source_record_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ingested_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "data_quality": {
+          "type": "string",
+          "enum": [
+            "measured",
+            "estimated",
+            "manual",
+            "imputed"
+          ]
+        },
+        "validation_status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "validated",
+            "rejected"
+          ]
+        },
+        "version": {
+          "type": "integer"
+        },
+        "created_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "approved_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "category",
+        "amount",
+        "currency",
+        "spend_date"
+      ],
+      "additionalProperties": false
+    },
+    "utility_invoice": {
+      "title": "utility_invoice",
+      "description": "Utility invoices; cross-check against meter data.",
+      "type": "object",
+      "properties": {
+        "invoice_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "entity_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "FK to entity.entity_id"
+        },
+        "utility_type": {
+          "type": "string",
+          "enum": [
+            "electricity",
+            "water",
+            "gas",
+            "fuel"
+          ]
+        },
+        "consumption": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "uom": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "period_start": {
+          "type": "string",
+          "format": "date"
+        },
+        "period_end": {
+          "type": "string",
+          "format": "date"
+        },
+        "amount": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "currency": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source_system_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to source_system.source_system_id"
+        },
+        "source_record_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ingested_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "data_quality": {
+          "type": "string",
+          "enum": [
+            "measured",
+            "estimated",
+            "manual",
+            "imputed"
+          ]
+        },
+        "validation_status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "validated",
+            "rejected"
+          ]
+        },
+        "version": {
+          "type": "integer"
+        },
+        "created_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "approved_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "entity_id",
+        "utility_type",
+        "period_start",
+        "period_end"
+      ],
+      "additionalProperties": false
+    },
+    "employee_snapshot": {
+      "title": "employee_snapshot",
+      "description": "Aggregated HR snapshot per period. Aggregates only: no individual-level personal data.",
+      "type": "object",
+      "properties": {
+        "snapshot_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "entity_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "FK to entity.entity_id"
+        },
+        "period_end": {
+          "type": "string",
+          "format": "date"
+        },
+        "department": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "gender": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "nationality_group": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "age_band": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "grade_band": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "contract_type": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "headcount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "leavers": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "voluntary_leavers": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "source_system_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to source_system.source_system_id"
+        },
+        "source_record_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ingested_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "data_quality": {
+          "type": "string",
+          "enum": [
+            "measured",
+            "estimated",
+            "manual",
+            "imputed"
+          ]
+        },
+        "validation_status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "validated",
+            "rejected"
+          ]
+        },
+        "version": {
+          "type": "integer"
+        },
+        "created_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "approved_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "entity_id",
+        "period_end",
+        "headcount"
+      ],
+      "additionalProperties": false
+    },
+    "training_record": {
+      "title": "training_record",
+      "description": "Aggregated training hours per period and category.",
+      "type": "object",
+      "properties": {
+        "training_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "entity_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "FK to entity.entity_id"
+        },
+        "period_start": {
+          "type": "string",
+          "format": "date"
+        },
+        "period_end": {
+          "type": "string",
+          "format": "date"
+        },
+        "course_category": {
+          "type": "string"
+        },
+        "training_hours": {
+          "type": "number",
+          "minimum": 0
+        },
+        "participants": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "source_system_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to source_system.source_system_id"
+        },
+        "source_record_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ingested_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "data_quality": {
+          "type": "string",
+          "enum": [
+            "measured",
+            "estimated",
+            "manual",
+            "imputed"
+          ]
+        },
+        "validation_status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "validated",
+            "rejected"
+          ]
+        },
+        "version": {
+          "type": "integer"
+        },
+        "created_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "approved_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "entity_id",
+        "period_start",
+        "period_end",
+        "course_category",
+        "training_hours"
+      ],
+      "additionalProperties": false
+    },
+    "hours_worked": {
+      "title": "hours_worked",
+      "description": "Exposure hours: the denominator for LTIFR / TRIR.",
+      "type": "object",
+      "properties": {
+        "hours_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "entity_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "FK to entity.entity_id"
+        },
+        "period_start": {
+          "type": "string",
+          "format": "date"
+        },
+        "period_end": {
+          "type": "string",
+          "format": "date"
+        },
+        "employee_hours": {
+          "type": "number",
+          "minimum": 0
+        },
+        "contractor_hours": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "source_system_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to source_system.source_system_id"
+        },
+        "source_record_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ingested_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "data_quality": {
+          "type": "string",
+          "enum": [
+            "measured",
+            "estimated",
+            "manual",
+            "imputed"
+          ]
+        },
+        "validation_status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "validated",
+            "rejected"
+          ]
+        },
+        "version": {
+          "type": "integer"
+        },
+        "created_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "approved_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "entity_id",
+        "period_start",
+        "period_end",
+        "employee_hours"
+      ],
+      "additionalProperties": false
+    },
+    "safety_incident": {
+      "title": "safety_incident",
+      "description": "Safety incidents and near-misses from the HSE system.",
+      "type": "object",
+      "properties": {
+        "incident_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "entity_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "FK to entity.entity_id"
+        },
+        "incident_type": {
+          "type": "string",
+          "enum": [
+            "lost_time",
+            "recordable",
+            "first_aid",
+            "fatality",
+            "near_miss",
+            "dangerous_occurrence"
+          ]
+        },
+        "person_type": {
+          "type": "string",
+          "enum": [
+            "employee",
+            "contractor",
+            "visitor"
+          ]
+        },
+        "occurred_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "lost_days": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "severity": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "injury_class": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "location_desc": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "root_cause": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "open",
+            "investigating",
+            "closed"
+          ]
+        },
+        "source_system_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to source_system.source_system_id"
+        },
+        "source_record_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ingested_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "data_quality": {
+          "type": "string",
+          "enum": [
+            "measured",
+            "estimated",
+            "manual",
+            "imputed"
+          ]
+        },
+        "validation_status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "validated",
+            "rejected"
+          ]
+        },
+        "version": {
+          "type": "integer"
+        },
+        "created_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "approved_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "entity_id",
+        "incident_type",
+        "person_type",
+        "occurred_at"
+      ],
+      "additionalProperties": false
+    },
+    "risk": {
+      "title": "risk",
+      "description": "ESG risk register (GRC).",
+      "type": "object",
+      "properties": {
+        "risk_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "risk_code": {
+          "type": "string"
+        },
+        "entity_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to entity.entity_id"
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "E",
+            "S",
+            "G",
+            "operational",
+            "climate"
+          ]
+        },
+        "title": {
+          "type": "string"
+        },
+        "likelihood": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 5
+        },
+        "impact": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 5
+        },
+        "owner": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "mitigation": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "open",
+            "mitigating",
+            "accepted",
+            "closed"
+          ]
+        },
+        "source_system_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to source_system.source_system_id"
+        },
+        "source_record_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ingested_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "data_quality": {
+          "type": "string",
+          "enum": [
+            "measured",
+            "estimated",
+            "manual",
+            "imputed"
+          ]
+        },
+        "validation_status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "validated",
+            "rejected"
+          ]
+        },
+        "version": {
+          "type": "integer"
+        },
+        "created_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "approved_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "risk_code",
+        "category",
+        "title"
+      ],
+      "additionalProperties": false
+    },
+    "policy": {
+      "title": "policy",
+      "description": "Governance policies and their review cycle.",
+      "type": "object",
+      "properties": {
+        "policy_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "title": {
+          "type": "string"
+        },
+        "version_label": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "approval_date": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "next_review_date": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "owner_role": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "doc_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to evidence_document.doc_id"
+        },
+        "source_system_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to source_system.source_system_id"
+        },
+        "source_record_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ingested_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "data_quality": {
+          "type": "string",
+          "enum": [
+            "measured",
+            "estimated",
+            "manual",
+            "imputed"
+          ]
+        },
+        "validation_status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "validated",
+            "rejected"
+          ]
+        },
+        "version": {
+          "type": "integer"
+        },
+        "created_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "approved_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "title"
+      ],
+      "additionalProperties": false
+    },
+    "audit_finding": {
+      "title": "audit_finding",
+      "description": "Internal / external audit findings.",
+      "type": "object",
+      "properties": {
+        "finding_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "entity_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to entity.entity_id"
+        },
+        "audit_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "severity": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            null
+          ]
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "due_date": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "open",
+            "in_progress",
+            "closed"
+          ]
+        },
+        "doc_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to evidence_document.doc_id"
+        },
+        "source_system_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to source_system.source_system_id"
+        },
+        "source_record_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ingested_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "data_quality": {
+          "type": "string",
+          "enum": [
+            "measured",
+            "estimated",
+            "manual",
+            "imputed"
+          ]
+        },
+        "validation_status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "validated",
+            "rejected"
+          ]
+        },
+        "version": {
+          "type": "integer"
+        },
+        "created_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "approved_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "certification": {
+      "title": "certification",
+      "description": "Management-system certifications (ISO 14001, ISO 45001, EcoPorts, etc.).",
+      "type": "object",
+      "properties": {
+        "certification_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "entity_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "FK to entity.entity_id"
+        },
+        "standard": {
+          "type": "string"
+        },
+        "issue_date": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "expiry_date": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "result": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "doc_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to evidence_document.doc_id"
+        },
+        "source_system_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to source_system.source_system_id"
+        },
+        "source_record_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ingested_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "data_quality": {
+          "type": "string",
+          "enum": [
+            "measured",
+            "estimated",
+            "manual",
+            "imputed"
+          ]
+        },
+        "validation_status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "validated",
+            "rejected"
+          ]
+        },
+        "version": {
+          "type": "integer"
+        },
+        "created_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "approved_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "entity_id",
+        "standard"
+      ],
+      "additionalProperties": false
+    },
+    "framework": {
+      "title": "framework",
+      "description": "Reporting frameworks (GRI, IFRS S1/S2, TCFD, SASB, CDP, local regulator).",
+      "type": "object",
+      "properties": {
+        "framework_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "code": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "version_label": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "name"
+      ],
+      "additionalProperties": false
+    },
+    "framework_requirement": {
+      "title": "framework_requirement",
+      "description": "Individual disclosures within a framework.",
+      "type": "object",
+      "properties": {
+        "requirement_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "framework_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "FK to framework.framework_id"
+        },
+        "disclosure_code": {
+          "type": "string"
+        },
+        "title": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "framework_id",
+        "disclosure_code"
+      ],
+      "additionalProperties": false
+    },
+    "metric": {
+      "title": "metric",
+      "description": "Metric catalog: links raw data to KPIs and disclosures.",
+      "type": "object",
+      "properties": {
+        "metric_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "metric_code": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "pillar": {
+          "type": "string",
+          "enum": [
+            "E",
+            "S",
+            "G"
+          ]
+        },
+        "unit": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "formula_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "owner": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "frequency": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "realtime",
+            "daily",
+            "monthly",
+            "quarterly",
+            "annual",
+            null
+          ]
+        },
+        "source_classes": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "metric_code",
+        "name",
+        "pillar"
+      ],
+      "additionalProperties": false
+    },
+    "metric_requirement_map": {
+      "title": "metric_requirement_map",
+      "description": "Many-to-many mapping of metrics to framework disclosures.",
+      "type": "object",
+      "properties": {
+        "metric_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "FK to metric.metric_id"
+        },
+        "requirement_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "FK to framework_requirement.requirement_id"
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "emission_factor": {
+      "title": "emission_factor",
+      "description": "Versioned emission factors. Never overwrite: add a new row with a new validity window.",
+      "type": "object",
+      "properties": {
+        "factor_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "source": {
+          "type": "string"
+        },
+        "activity_type": {
+          "type": "string"
+        },
+        "fuel_or_grid": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "gas": {
+          "type": "string",
+          "enum": [
+            "CO2",
+            "CH4",
+            "N2O",
+            "CO2e",
+            "HFC",
+            "SF6"
+          ]
+        },
+        "value": {
+          "type": "number",
+          "minimum": 0
+        },
+        "uom": {
+          "type": "string"
+        },
+        "gwp_basis": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "AR4",
+            "AR5",
+            "AR6",
+            null
+          ]
+        },
+        "region": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "valid_from": {
+          "type": "string",
+          "format": "date"
+        },
+        "valid_to": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        }
+      },
+      "required": [
+        "source",
+        "activity_type",
+        "gas",
+        "value",
+        "uom",
+        "valid_from"
+      ],
+      "additionalProperties": false
+    },
+    "climate_hazard": {
+      "title": "climate_hazard",
+      "description": "Physical climate hazard projections per location / scenario.",
+      "type": "object",
+      "properties": {
+        "hazard_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "entity_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to entity.entity_id"
+        },
+        "hazard_type": {
+          "type": "string"
+        },
+        "scenario": {
+          "type": "string"
+        },
+        "horizon_year": {
+          "type": "integer"
+        },
+        "value": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "uom": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "hazard_type",
+        "scenario",
+        "horizon_year"
+      ],
+      "additionalProperties": false
+    },
+    "tenant_esg_submission": {
+      "title": "tenant_esg_submission",
+      "description": "Metric values submitted by tenants and contractors, with review workflow.",
+      "type": "object",
+      "properties": {
+        "submission_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "tenant_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "FK to tenant.tenant_id"
+        },
+        "metric_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "FK to metric.metric_id"
+        },
+        "period_start": {
+          "type": "string",
+          "format": "date"
+        },
+        "period_end": {
+          "type": "string",
+          "format": "date"
+        },
+        "value": {
+          "type": "number"
+        },
+        "uom": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "evidence_doc_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to evidence_document.doc_id"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "submitted",
+            "approved",
+            "rejected"
+          ]
+        },
+        "reviewer": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "review_date": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "source_system_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to source_system.source_system_id"
+        },
+        "source_record_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ingested_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "data_quality": {
+          "type": "string",
+          "enum": [
+            "measured",
+            "estimated",
+            "manual",
+            "imputed"
+          ]
+        },
+        "validation_status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "validated",
+            "rejected"
+          ]
+        },
+        "version": {
+          "type": "integer"
+        },
+        "created_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "approved_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "tenant_id",
+        "metric_id",
+        "period_start",
+        "period_end",
+        "value"
+      ],
+      "additionalProperties": false
+    },
+    "shipping_line_data": {
+      "title": "shipping_line_data",
+      "description": "Voluntary shipping-line disclosures: berth fuel use, ETS and CII.",
+      "type": "object",
+      "properties": {
+        "record_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "line_name": {
+          "type": "string"
+        },
+        "imo_number": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "FK to vessel.imo_number"
+        },
+        "period_start": {
+          "type": "string",
+          "format": "date"
+        },
+        "period_end": {
+          "type": "string",
+          "format": "date"
+        },
+        "fuel_consumed_at_berth_t": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "ets_certificate_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "cii_rating": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            null
+          ]
+        },
+        "source_system_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to source_system.source_system_id"
+        },
+        "source_record_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ingested_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "data_quality": {
+          "type": "string",
+          "enum": [
+            "measured",
+            "estimated",
+            "manual",
+            "imputed"
+          ]
+        },
+        "validation_status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "validated",
+            "rejected"
+          ]
+        },
+        "version": {
+          "type": "integer"
+        },
+        "created_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "approved_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "line_name",
+        "period_start",
+        "period_end"
+      ],
+      "additionalProperties": false
+    },
+    "waste_manifest": {
+      "title": "waste_manifest",
+      "description": "Waste transfer manifests.",
+      "type": "object",
+      "properties": {
+        "manifest_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "entity_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "FK to entity.entity_id"
+        },
+        "manifest_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "waste_type": {
+          "type": "string"
+        },
+        "hazardous": {
+          "type": "boolean"
+        },
+        "quantity_kg": {
+          "type": "number",
+          "minimum": 0
+        },
+        "disposal_method": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "recycle",
+            "recover",
+            "landfill",
+            "incineration",
+            "treatment",
+            "other",
+            null
+          ]
+        },
+        "contractor": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "manifest_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "doc_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to evidence_document.doc_id"
+        },
+        "source_system_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to source_system.source_system_id"
+        },
+        "source_record_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ingested_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "data_quality": {
+          "type": "string",
+          "enum": [
+            "measured",
+            "estimated",
+            "manual",
+            "imputed"
+          ]
+        },
+        "validation_status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "validated",
+            "rejected"
+          ]
+        },
+        "version": {
+          "type": "integer"
+        },
+        "created_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "approved_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "entity_id",
+        "waste_type",
+        "quantity_kg",
+        "manifest_date"
+      ],
+      "additionalProperties": false
+    },
+    "community_grievance": {
+      "title": "community_grievance",
+      "description": "Community and stakeholder grievances.",
+      "type": "object",
+      "properties": {
+        "grievance_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "entity_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to entity.entity_id"
+        },
+        "received_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "channel": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "category": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "open",
+            "investigating",
+            "resolved",
+            "closed"
+          ]
+        },
+        "resolution_days": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "source_system_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to source_system.source_system_id"
+        },
+        "source_record_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ingested_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "data_quality": {
+          "type": "string",
+          "enum": [
+            "measured",
+            "estimated",
+            "manual",
+            "imputed"
+          ]
+        },
+        "validation_status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "validated",
+            "rejected"
+          ]
+        },
+        "version": {
+          "type": "integer"
+        },
+        "created_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "approved_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "received_date"
+      ],
+      "additionalProperties": false
+    },
+    "survey_response": {
+      "title": "survey_response",
+      "description": "Stakeholder survey scores used in double-materiality assessment.",
+      "type": "object",
+      "properties": {
+        "response_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "survey_ref": {
+          "type": "string"
+        },
+        "stakeholder_group": {
+          "type": "string"
+        },
+        "topic": {
+          "type": "string"
+        },
+        "score": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "response_date": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "source_system_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to source_system.source_system_id"
+        },
+        "source_record_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ingested_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "data_quality": {
+          "type": "string",
+          "enum": [
+            "measured",
+            "estimated",
+            "manual",
+            "imputed"
+          ]
+        },
+        "validation_status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "validated",
+            "rejected"
+          ]
+        },
+        "version": {
+          "type": "integer"
+        },
+        "created_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "approved_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "survey_ref",
+        "stakeholder_group",
+        "topic"
+      ],
+      "additionalProperties": false
+    },
+    "calc_run": {
+      "title": "calc_run",
+      "description": "A calculation run: pins the factor-set version so results are reproducible.",
+      "type": "object",
+      "properties": {
+        "run_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "period_start": {
+          "type": "string",
+          "format": "date"
+        },
+        "period_end": {
+          "type": "string",
+          "format": "date"
+        },
+        "factor_set_version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "triggered_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "started_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "finished_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "running",
+            "succeeded",
+            "failed"
+          ]
+        },
+        "notes": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "period_start",
+        "period_end"
+      ],
+      "additionalProperties": false
+    },
+    "kpi_target": {
+      "title": "kpi_target",
+      "description": "Baselines and targets per metric and entity.",
+      "type": "object",
+      "properties": {
+        "target_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "metric_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "FK to metric.metric_id"
+        },
+        "entity_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "FK to entity.entity_id"
+        },
+        "baseline_year": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "baseline_value": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "target_year": {
+          "type": "integer"
+        },
+        "target_value": {
+          "type": "number"
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "active",
+            "achieved",
+            "superseded"
+          ]
+        }
+      },
+      "required": [
+        "metric_id",
+        "entity_id",
+        "target_year",
+        "target_value"
+      ],
+      "additionalProperties": false
+    },
+    "ghg_activity_data": {
+      "title": "ghg_activity_data",
+      "description": "Normalised activity data feeding the GHG inventory, with lineage back to source rows.",
+      "type": "object",
+      "properties": {
+        "activity_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "run_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "FK to calc_run.run_id"
+        },
+        "entity_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "FK to entity.entity_id"
+        },
+        "scope": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3
+        },
+        "scope3_category": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 15
+        },
+        "activity_type": {
+          "type": "string"
+        },
+        "quantity": {
+          "type": "number"
+        },
+        "uom": {
+          "type": "string"
+        },
+        "period_start": {
+          "type": "string",
+          "format": "date"
+        },
+        "period_end": {
+          "type": "string",
+          "format": "date"
+        },
+        "data_quality": {
+          "type": "string",
+          "enum": [
+            "measured",
+            "estimated",
+            "manual",
+            "imputed"
+          ]
+        },
+        "source_table": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source_record_ids": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "run_id",
+        "entity_id",
+        "scope",
+        "activity_type",
+        "quantity",
+        "uom",
+        "period_start",
+        "period_end"
+      ],
+      "additionalProperties": false
+    },
+    "ghg_emission": {
+      "title": "ghg_emission",
+      "description": "Calculated emissions per activity and gas.",
+      "type": "object",
+      "properties": {
+        "emission_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "activity_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "FK to ghg_activity_data.activity_id"
+        },
+        "factor_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "FK to emission_factor.factor_id"
+        },
+        "run_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "FK to calc_run.run_id"
+        },
+        "gas": {
+          "type": "string",
+          "enum": [
+            "CO2",
+            "CH4",
+            "N2O",
+            "CO2e",
+            "HFC",
+            "SF6"
+          ]
+        },
+        "co2e_tonnes": {
+          "type": "number"
+        },
+        "method": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "uncertainty_pct": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        }
+      },
+      "required": [
+        "activity_id",
+        "factor_id",
+        "run_id",
+        "gas",
+        "co2e_tonnes"
+      ],
+      "additionalProperties": false
+    },
+    "kpi_value": {
+      "title": "kpi_value",
+      "description": "Computed KPI values per metric, entity and period, with status versus target.",
+      "type": "object",
+      "properties": {
+        "kpi_value_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "metric_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "FK to metric.metric_id"
+        },
+        "entity_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "FK to entity.entity_id"
+        },
+        "period_start": {
+          "type": "string",
+          "format": "date"
+        },
+        "period_end": {
+          "type": "string",
+          "format": "date"
+        },
+        "value": {
+          "type": "number"
+        },
+        "target_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to kpi_target.target_id"
+        },
+        "status": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "on_track",
+            "at_risk",
+            "off_track",
+            "no_target",
+            null
+          ]
+        },
+        "run_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "FK to calc_run.run_id"
+        }
+      },
+      "required": [
+        "metric_id",
+        "entity_id",
+        "period_start",
+        "period_end",
+        "value"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

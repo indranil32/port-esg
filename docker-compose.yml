@@ -1,0 +1,43 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: esg
+      POSTGRES_PASSWORD: esg
+      POSTGRES_DB: esg
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Files here run once, in name order, on first start of an empty volume.
+      - ./db/01_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ./db/02_schema_ext.sql:/docker-entrypoint-initdb.d/02_schema_ext.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U esg"]
+      interval: 5s
+      retries: 10
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://esg:esg@db:5432/esg
+      APP_SECRET: change-me-to-a-long-random-string
+      SEED_DEMO_DATA: "true"          # set to "false" in production
+      ALERT_WEBHOOK_URL: ""           # Teams / Slack incoming webhook (optional)
+      SMTP_HOST: ""                   # optional, enables email alerts
+      SMTP_PORT: "587"
+      SMTP_USER: ""
+      SMTP_PASSWORD: ""
+      SMTP_FROM: "esg-alerts@example.org"
+      OCR_PROVIDER: "auto"            # auto | rapidocr | tesseract | azure | none
+      AZURE_DI_ENDPOINT: ""           # only for OCR_PROVIDER=azure
+      AZURE_DI_KEY: ""
+    volumes:
+      - evidence:/srv/data      # uploaded evidence files
+    ports:
+      - "8000:8000"
+
+volumes:
+  pgdata:
+  evidence:

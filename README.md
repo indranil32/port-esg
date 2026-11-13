@@ -1,0 +1,143 @@
+# ESG System of Record (ports)
+
+A working ESG system of record: schema-validated **data capture**, a **GHG and KPI engine** with
+reproducible runs, **reporting and exports**, and **alerting**, behind role-based access with a
+four-eyes approval workflow and an append-only audit log.
+
+> **Everything shipped as seed data is synthetic or illustrative**: operational data, emission
+> factors, alert thresholds and framework mappings. Replace or review them before using any output
+> for real reporting. In demo mode the UI shows a banner saying so.
+
+## Run it
+
+```bash
+docker compose up --build          # app on http://localhost:8000, API docs on /docs
+```
+
+Demo mode (`SEED_DEMO_DATA=true`, the compose default) loads sample data on first start. Sign in with
+any of these (password `Demo#2026`):
+
+| Email | Role |
+|---|---|
+| esg.admin@adports-demo.local | esg_admin: everything, incl. users, rules, reference data |
+| data.owner@adports-demo.local | data_owner: capture, approve, calculate, handle alerts |
+| field.operator@adports-demo.local | field_operator: photo + reading capture on the Field capture page; own records only |
+| auditor@adports-demo.local | auditor: read-only incl. audit log |
+| tenant1@adports-demo.local | tenant: submit own ESG data only |
+
+**For real use** set `SEED_DEMO_DATA=false`, `ADMIN_EMAIL`, `ADMIN_PASSWORD` and a long random
+`APP_SECRET`; then load your entity hierarchy, **approved emission factors** and targets (Data capture >
+Reference & setup, or CSV). Without emission factors the calculation reports the gaps instead of guessing.
+
+Local development without Docker: load `db/01_schema.sql` then `db/02_schema_ext.sql` into a Postgres 13+
+database, `pip install -r requirements.txt`, set `DATABASE_URL`, then `uvicorn app.main:app`.
+
+## What it does
+
+**Capture.** 37 tables across operations, energy, environment, people and safety, governance, third parties.
+Three routes in, all validated against the JSON Schemas generated from the data model, saved per record
+(one bad row never sinks a batch), idempotent on `(source_system, source_record_id, version)`, and audited:
+the web forms (generated from the schemas), CSV upload (with template download), and `POST /api/ingest/{table}`
+for systems such as the TOS, ERP, HRMS and SCADA.
+
+```bash
+TOKEN=$(curl -s localhost:8000/api/auth/login -H 'content-type: application/json' \
+  -d '{"email":"data.owner@adports-demo.local","password":"Demo#2026"}' | jq -r .token)
+curl -s localhost:8000/api/ingest/fuel_transaction -H "Authorization: Bearer $TOKEN" -H 'content-type: application/json' \
+  -d '{"source_system_code":"ERP","records":[{"source_record_id":"ERP-123","entity_id":"<uuid>","fuel_type":"diesel","litres":420,"ts":"2026-11-01T06:30:00Z"}]}'
+```
+
+**Field evidence capture (photo + OCR).** A `field_operator` role works from a phone-friendly *Field capture*
+page: choose the meter, take a photo of the display, confirm the number the OCR read, submit. The photo is kept as
+evidence with its OCR text and confidence, the camera's capture time (EXIF) or the device clock, the location
+(EXIF or browser GPS), and a perceptual hash. Any normal data-entry form also has an optional *Evidence photo*
+field for tables that take evidence. The approver sees the photo, the typed value, the OCR value and any flags
+side by side. Cumulative register readings are turned into interval consumption (with the meter multiplier and
+dial rollover) only when a second person approves, and flow into the Scope 2 calculation as `energy_meter_reading`.
+
+Integrity flags (they never block a capture; they go to the approver and the `Suspect field evidence` alert):
+`duplicate_file`, `near_duplicate` (same shot and same number), `wrong_meter` (plate shows another meter's code),
+`value_mismatch` (typed value is not what the photo says), `future_timestamp`, `stale_photo`, `clock_mismatch`,
+`read_at_mismatch`, `reading_decreased`, `implausible_jump`, `low_ocr_confidence`, `no_reading_found`, and
+informational `no_gps`, `timestamp_unverified`, `ocr_unavailable`, `first_reading`, `no_evidence`. One rule is hard:
+a register value below the previous approved one cannot be approved unless marked as rollover.
+
+OCR engine (`OCR_PROVIDER`): `rapidocr` (local, default if installed; photos stay on your server), `tesseract`
+(local fallback), `azure` (Azure AI Document Intelligence `prebuilt-read`; photos are sent to Azure), or `none`.
+`auto` picks Azure only if its endpoint and key are set.
+
+**Approval (four-eyes).** New records start `pending`. A second person validates or rejects (reject needs a
+comment). Corrections send a record back to pending, with before/after images in the audit log. Tenant
+submissions follow the same path and become `approved`. Rejected records are excluded from calculations.
+
+**Calculation.** `POST /api/calc/run` (or the UI) builds the inventory for a period: activity data x versioned
+emission factor, per entity and month, with lineage to the source rows. Every run is kept, so earlier results
+reproduce exactly. KPIs are computed in the same run and scored against targets.
+
+| Scope | Source | Notes |
+|---|---|---|
+| 1 | Fuel transactions; refrigerant top-ups | factor per fuel / refrigerant |
+| 2 | Grid electricity on own and shared meters; shore-power electricity purchased | location-based |
+| 3 cat 1 | Spend records in AED | spend-based; categories without a factor are reported as gaps |
+| 3 cat 9 | Vessel auxiliary engines at berth **without** shore power | kW x load factor (0.4, `VESSEL_AUX_LOAD_FACTOR`) x hours |
+| 3 cat 13 | Electricity on tenant meters | |
+
+These mappings are assumptions: confirm them against your reporting policy and boundary.
+
+**Reporting.** Dashboard, GHG inventory (group by activity, category, entity, month, scope), KPI scorecard
+(25 metrics, E/S/G), disclosure coverage (GRI and IFRS S2 starter mappings, indicative only), CSV exports, and a
+printable annual report (open it, then Print > Save as PDF).
+
+**Alerting.** Seven rule types, evaluated every `ALERT_INTERVAL_SEC` (default 300 s) and on demand:
+sensor thresholds, new environmental or safety incidents, silent meters, expiring certifications and policies,
+workflow backlogs, KPIs off track, missing monthly data. One live alert per condition (no duplicates), alerts clear
+themselves when the condition ends, and acknowledge / resolve is audited. New alerts go to a Teams / Slack-style
+webhook (`ALERT_WEBHOOK_URL`, posts `{"text": ...}`) and/or email (SMTP settings). Thresholds seeded here are
+illustrative: set yours under Alerts > Rules.
+
+## Layout
+
+```
+app/        FastAPI app: capture.py, evidence.py, ocr.py, calc.py, kpis.py, reports.py, alerts.py, auth.py, seed.py, static/ (UI)
+db/         01_schema.sql (data model), 02_schema_ext.sql (users, audit log, alerts, evidence_capture),
+            migrations/ (001_evidence_ocr.sql: applied automatically at start to databases built before it)
+docs/       erd.md (Mermaid ERDs)
+tools/      model.py + generate.py: single source for the SQL, ERD and JSON Schemas (app/esg_schemas.json)
+tests/      pytest suite (needs DATABASE_URL pointing at a disposable Postgres with both schema files loaded)
+```
+
+To change the data model, edit `tools/model.py`, run `python tools/generate.py`, and copy `build/schema.sql`
+and `build/esg_schemas.json` into `db/01_schema.sql` and `app/esg_schemas.json`.
+
+## Known limits (read before production)
+
+- Auth is email + password with signed tokens. No SSO, MFA, lockout or rate limiting yet; put it behind your
+  reverse proxy / identity provider and TLS.
+- Audit entries are written by the application. Direct SQL changes to data tables are not audited (the audit
+  table itself rejects edits and deletes).
+- High-volume tables (meter, AIS, sensor readings) are plain tables: partition by month at scale.
+- Evidence files are stored on local disk (`EVIDENCE_DIR`); use a persistent volume or object storage.
+- Alert evaluation runs inside each app process: run one instance, or move `alerts.evaluate_all` to a single scheduler.
+- Evidence photos prove a photo was taken, not that the meter was read honestly. Flags raise the cost of
+  re-using or mistyping photos; they cannot detect a staged or edited photo. EXIF can be edited on the handset,
+  so the capture time is corroborated by the device clock and the upload time rather than trusted alone.
+- Browsers give no tamper-proof camera: the file input opens the phone camera on mobile, but a user can still pick
+  a gallery image (the stale-photo and duplicate flags are the control). A native app would close that gap.
+- OCR is only as good as the photo. It reads LCD and printed digits; analogue dials and odometer rollers need a
+  trained model. Always confirm the number by eye; the typed value is what is stored. The Azure provider and the
+  Docker OCR libraries were not exercised in the build environment (rapidocr and tesseract were).
+- No offline queue: the field page needs a connection when the photo is taken.
+- HEIC photos must be converted to JPEG by the handset or browser (iPhones do this for web uploads by default).
+- The UI is light-theme only and has had desktop-browser checks, not a full accessibility audit.
+- Shore-power electricity is treated as purchased Scope 2; vessel emissions avoided by shore power are not
+  yet reported as a separate figure.
+
+## Tests
+
+```bash
+DATABASE_URL=postgresql://... pytest -q tests
+```
+27 tests cover role boundaries, ingestion edge cases, four-eyes, audit immutability, calculation arithmetic
+against independent queries, rejected-record exclusion, KPI formulas, exports, alert de-duplication,
+auto-resolve, webhook delivery, and rule-parameter injection guards, and the evidence flow
+(OCR of a synthetic meter photo, flags, atomic linking, rollover, derived consumption, field-operator limits).
