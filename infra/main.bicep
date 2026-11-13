@@ -33,6 +33,12 @@ param entraClientSecret string = ''
 @description('Entra app roles to ESG roles, e.g. AdPorts.Admin=esg_admin,AdPorts.Owner=data_owner')
 param entraRoleMap string = ''
 param entraAllowedDomains string = ''
+@description('Exact redirect URI registered on the Entra app, e.g. https://<app-fqdn>/api/auth/entra/callback. Needed because the app sits behind a proxy.')
+param entraRedirectUri string = ''
+param entraDefaultRole string = ''
+param entraAutoProvision bool = false
+@description('Keep password sign-in available next to SSO (demo and break-glass). Set false for production.')
+param localLoginEnabled bool = true
 
 @description('true loads synthetic demo data on first start. Must be false for real data.')
 param seedDemoData bool = false
@@ -184,7 +190,10 @@ resource app 'Microsoft.App/containerApps@2024-03-01' = {
             { name: 'ENTRA_CLIENT_ID', value: entraClientId }
             { name: 'ENTRA_ROLE_MAP', value: entraRoleMap }
             { name: 'ENTRA_ALLOWED_DOMAINS', value: entraAllowedDomains }
-            { name: 'LOCAL_LOGIN_ENABLED', value: entraTenantId == '' ? 'true' : 'false' }
+            { name: 'ENTRA_REDIRECT_URI', value: entraRedirectUri }
+            { name: 'ENTRA_DEFAULT_ROLE', value: entraDefaultRole }
+            { name: 'ENTRA_AUTO_PROVISION', value: string(entraAutoProvision) }
+            { name: 'LOCAL_LOGIN_ENABLED', value: string(entraTenantId == '' || localLoginEnabled) }
           ], deployDocumentIntelligence ? [
             { name: 'AZURE_DI_ENDPOINT', value: di!.properties.endpoint }
             { name: 'AZURE_DI_KEY', secretRef: 'di-key' }
