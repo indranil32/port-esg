@@ -312,3 +312,10 @@ BEGIN
     END LOOP;
 END $$;
 INSERT INTO esg.schema_migration (name) VALUES ('006_db_audit.sql') ON CONFLICT DO NOTHING;
+
+-- 007 anomaly rule type
+ALTER TABLE esg.alert_rule DROP CONSTRAINT IF EXISTS alert_rule_rule_type_check;
+ALTER TABLE esg.alert_rule ADD CONSTRAINT alert_rule_rule_type_check CHECK (rule_type IN (
+    'threshold_reading', 'new_incident', 'data_freshness', 'expiry',
+    'workflow_backlog', 'kpi_off_track', 'missing_monthly', 'evidence_flagged', 'data_anomaly'));
+INSERT INTO esg.schema_migration (name) VALUES ('007_anomaly_rule.sql') ON CONFLICT DO NOTHING;

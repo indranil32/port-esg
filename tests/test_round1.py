@@ -282,3 +282,29 @@ def test_direct_database_changes_are_audited(client, H):
     assert {a["action"] for a in direct} == {"update", "delete"} and len(rows) == 3
     upd = [a for a in direct if a["action"] == "update"][0]
     assert float(upd["before"]["quantity_kg"]) == 10 and float(upd["after"]["quantity_kg"]) == 99
+
+
+# ------------------------------------------------------------------ anomaly detection
+def test_anomaly_detector_flags_outliers_only(client, H):
+    from app import anomaly
+    ent = terminal(client, H)
+    today = date.today()
+    def rec(days_ago, v, n):
+        d = today - timedelta(days=days_ago)
+        return {"entity_id": ent, "period_start": d.isoformat(), "period_end": d.isoformat(), "flow_type": "recycled", "source_type": "groundwater",
+                "volume_m3": v, "source_record_id": f"an{n}-" + UNIQ()}
+    hist = [rec(20 + 7 * i, 100 + (i % 3) * 4, i) for i in range(9)]          # steady history, 100-108
+    r = client.post("/api/ingest/water_record", headers=H["owner"], json={"records": hist + [rec(1, 104, 50), rec(2, 5000, 51)]}).json()
+    assert r["inserted"] == 11, r
+    params = {"detector": "water", "lookback_days": 5, "baseline_days": 120, "min_baseline": 5, "z_threshold": 6}
+    with db.conn() as c:
+        found = [f for f in anomaly.find(c, params) if f["context"]["value"] in (104, 5000) and f["context"]["record_id"] in set(r["ids"])]
+    assert len(found) == 1 and found[0]["context"]["value"] == 5000 and found[0]["context"]["modified_z"] > 6
+    assert "usual level" in found[0]["message"]
+    client.post(f"/api/batches/{r['batch_id']}/withdraw", headers=H["owner"], json={"reason": "test cleanup"})
+    with db.conn() as c:       # rejected records no longer count
+        assert not [f for f in anomaly.find(c, params) if f["context"]["record_id"] in set(r["ids"])]
+    bad = client.post("/api/alert-rules", headers=H["admin"], json={"name": "bad " + UNIQ(), "rule_type": "data_anomaly", "severity": "warning", "params": {"detector": "nope"}, "channels": [], "recipients": []})
+    assert bad.status_code == 400
+    ok = client.post("/api/alert-rules", headers=H["admin"], json={"name": "ok " + UNIQ(), "rule_type": "data_anomaly", "severity": "warning", "params": params, "channels": [], "recipients": []})
+    assert ok.status_code == 200, ok.text

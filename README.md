@@ -129,10 +129,12 @@ and `build/esg_schemas.json` into `db/01_schema.sql` and `app/esg_schemas.json`.
   withdrawal, consumption (withdrawal less discharge) and recycled share, mapped to GRI 303-3 and 303-5.
   Not yet modelled: per-source water-stress classification, quality of discharge against permit limits.
 - *Direct-change audit*: a trigger on the data tables logs SQL run outside the app (see limits).
+- *Anomaly detection*: alert rule type `data_anomaly` compares recent fuel, meter-interval or water values with their own
+  history (median and MAD, modified z-score) and raises an alert showing the usual level. No model or training, so every
+  flag is explainable; it needs about 8 earlier records per series. Seeded rules are on by default; tune them under Alerts.
 - Migrations are tracked in `esg.schema_migration` and applied at startup.
 
-**Not yet built (planned rounds):** per-framework completeness, AI document classification and anomaly
-detection, data-logger connectors, report templates, ISO 14001 / 50001 workflows. Vendor ontology size, patents,
+**Not yet built (planned rounds):** per-framework completeness, AI document classification, data-logger connectors, report templates, ISO 14001 / 50001 workflows. Vendor ontology size, patents,
 SOC 2 and 24/7 support cannot be matched by code alone.
 
 ## Known limits (read before production)
@@ -165,7 +167,7 @@ SOC 2 and 24/7 support cannot be matched by code alone.
 ```bash
 DATABASE_URL=postgresql://... pytest -q tests
 ```
-37 tests cover role boundaries, ingestion edge cases, four-eyes, audit immutability, calculation arithmetic
+38 tests cover role boundaries, ingestion edge cases, four-eyes, audit immutability, calculation arithmetic
 against independent queries, rejected-record exclusion, KPI formulas, exports, alert de-duplication,
 auto-resolve, webhook delivery, and rule-parameter injection guards, period locks, collection links, source trace, and the evidence flow
 (OCR of a synthetic meter photo, flags, atomic linking, rollover, derived consumption, field-operator limits).

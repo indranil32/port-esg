@@ -184,9 +184,11 @@ def f_missing_monthly(c, p):
             for r in rows]
 
 
+from . import anomaly
+
 EVALUATORS = {"threshold_reading": f_threshold, "new_incident": f_incident, "data_freshness": f_freshness,
               "expiry": f_expiry, "workflow_backlog": f_backlog, "kpi_off_track": f_kpi, "missing_monthly": f_missing_monthly,
-              "evidence_flagged": f_evidence}
+              "evidence_flagged": f_evidence, "data_anomaly": anomaly.find}
 
 
 def validate_params(rule_type, p):
@@ -210,6 +212,8 @@ def validate_params(rule_type, p):
     elif rule_type == "missing_monthly":
         if p.get("table", "hours_worked") not in MONTHLY:
             raise bad(f"table must be one of {sorted(MONTHLY)}")
+    elif rule_type == "data_anomaly":
+        anomaly.validate(p, bad)
     elif rule_type == "evidence_flagged":
         d = p.get("lookback_days", 14)
         if not isinstance(d, int) or isinstance(d, bool) or not 1 <= d <= 365:
