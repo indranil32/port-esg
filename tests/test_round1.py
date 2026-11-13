@@ -339,3 +339,64 @@ def test_ems_objectives_actions_audits_reviews(client, H):
     rv = client.post("/api/ems/reviews", headers=H["admin"], json={"standard": "ISO14001", "review_date": "2026-11-01", "attendees": "EHS, Ops", "decisions": "Extend target"})
     assert rv.status_code == 200 and "open_findings" in rv.json()["snapshot"] and any(x["title"] == body["title"] for x in rv.json()["snapshot"]["objectives"])
     assert client.get("/api/ems/reviews", headers=H["auditor"]).status_code == 200
+
+
+# ------------------------------------------------------------------ legal register, nonconformities, energy baselines
+def test_legal_register(client, H):
+    ref = "LR-" + UNIQ()
+    body = {"ref": ref, "title": "Discharge permit", "kind": "permit", "authority": "EAD", "permit_expiry": (date.today() + timedelta(days=20)).isoformat()}
+    assert client.post("/api/ems/legal", headers=H["auditor"], json=body).status_code == 403
+    assert client.post("/api/ems/legal", headers=H["admin"], json={**body, "kind": "nonsense"}).status_code == 400
+    r = client.post("/api/ems/legal", headers=H["admin"], json=body).json()
+    assert client.post("/api/ems/legal", headers=H["admin"], json=body).status_code == 409
+    row = [x for x in client.get("/api/ems/legal", headers=H["auditor"]).json() if x["ref"] == ref][0]
+    assert row["permit_soon"] is True and row["status"] == "under_review"
+    from app import ems
+    with db.conn() as c:
+        assert any(f["context"].get("requirement_id") == r["requirement_id"] for f in ems.f_ems_overdue(c, {}))
+    assert client.post(f"/api/ems/legal/{r['requirement_id']}/evaluate", headers=H["admin"], json={"status": "non_compliant"}).status_code == 400
+    ok = client.post(f"/api/ems/legal/{r['requirement_id']}/evaluate", headers=H["admin"], json={"status": "compliant", "note": "Checked samples"})
+    assert ok.status_code == 200 and ok.json()["evaluated_by"] and ok.json()["last_evaluated"]
+
+
+def test_nonconformity_lifecycle(client, H):
+    ref = "NC-" + UNIQ()
+    body = {"nc_ref": ref, "source": "audit", "standard": "ISO14001", "description": "Oil spill kit empty", "severity": "major", "due_date": "2020-01-01"}
+    n = client.post("/api/ems/nonconformities", headers=H["owner"], json=body).json()
+    nid = n["nc_id"]
+    assert client.post("/api/ems/nonconformities", headers=H["owner"], json=body).status_code == 409
+    assert client.post(f"/api/ems/nonconformities/{nid}/actions", headers=H["owner"], json={"title": "Refill"}).status_code == 409   # root cause first
+    assert client.post(f"/api/ems/nonconformities/{nid}/root-cause", headers=H["owner"], json={"root_cause": " "}).status_code == 400
+    assert client.post(f"/api/ems/nonconformities/{nid}/root-cause", headers=H["owner"], json={"root_cause": "No inspection schedule"}).status_code == 200
+    assert client.post(f"/api/ems/nonconformities/{nid}/verify", headers=H["owner"]).status_code == 409                       # no actions yet
+    a = client.post(f"/api/ems/nonconformities/{nid}/actions", headers=H["owner"], json={"title": "Refill kits and add weekly check", "due_date": "2020-01-15"}).json()
+    from app import ems
+    with db.conn() as c:
+        assert any(f["context"].get("nc_id") == nid for f in ems.f_ems_overdue(c, {})) and any(f["context"].get("action_id") == a["action_id"] for f in ems.f_ems_overdue(c, {}))
+    assert client.post(f"/api/ems/nonconformities/{nid}/verify", headers=H["owner"]).status_code == 409                       # action still open
+    assert client.patch(f"/api/ems/actions/{a['action_id']}", headers=H["owner"], json={"status": "done"}).status_code == 200
+    assert [x for x in client.get("/api/ems/actions", headers=H["auditor"]).json() if x["action_id"] == a["action_id"]][0]["objective"].startswith("Nonconformity")
+    assert client.post(f"/api/ems/nonconformities/{nid}/verify", headers=H["owner"]).status_code == 200
+    assert client.post(f"/api/ems/nonconformities/{nid}/close", headers=H["owner"], json={"effectiveness_note": "x"}).status_code == 403   # major: not by raiser
+    assert client.post(f"/api/ems/nonconformities/{nid}/close", headers=H["admin"], json={"effectiveness_note": " "}).status_code == 400
+    c = client.post(f"/api/ems/nonconformities/{nid}/close", headers=H["admin"], json={"effectiveness_note": "Weekly checks logged for 4 weeks"})
+    assert c.status_code == 200 and c.json()["status"] == "closed"
+    assert client.post(f"/api/ems/nonconformities/{nid}/close", headers=H["admin"], json={"effectiveness_note": "again"}).status_code == 409
+
+
+def test_enpi_regression_and_baseline(client, H):
+    from app import compliance
+    icpt, slope, r2 = compliance.ols([1, 2, 3, 4], [102, 104, 106, 108])
+    assert icpt == pytest.approx(100) and slope == pytest.approx(2) and r2 == pytest.approx(1)
+    assert compliance.ols([5, 5, 5], [1, 2, 3])[1] == 0.0
+    root = client.get("/api/entities", headers=H["admin"]).json()[0]["entity_id"]
+    thin = client.post("/api/ems/enpi/baselines", headers=H["admin"], json={"name": "t", "entity_id": root, "driver": "teu", "baseline_start": "1999-01-01", "baseline_end": "1999-12-31"})
+    assert thin.status_code == 422 and "6 months" in thin.text
+    assert client.post("/api/ems/enpi/baselines", headers=H["admin"], json={"name": "t", "entity_id": root, "driver": "bad", "baseline_start": "2025-01-01", "baseline_end": "2025-12-31"}).status_code == 400
+    y = date.today().year
+    ok = client.post("/api/ems/enpi/baselines", headers=H["admin"], json={"name": "YTD", "entity_id": root, "driver": "none", "baseline_start": f"{y}-01-01", "baseline_end": date.today().isoformat()})
+    if ok.status_code == 200:
+        p = client.get(f"/api/ems/enpi/baselines/{ok.json()['baseline_id']}/performance?start={y}-01-01&end={date.today().isoformat()}", headers=H["auditor"]).json()
+        assert p["months"] and "note" in p
+    else:
+        assert ok.status_code == 422        # demo data has under 6 months this early in the year

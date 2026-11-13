@@ -135,8 +135,11 @@ and `build/esg_schemas.json` into `db/01_schema.sql` and `app/esg_schemas.json`.
 - *Environmental and energy management* (EMS page): ISO 14001 / 50001 objectives linked to KPIs with progress from baseline to
   target, action plans with owners and due dates, internal audit planning (findings are the existing audit findings, linked by
   audit reference), and management reviews that store a snapshot of KPIs, findings and overdue actions. An alert rule flags
-  overdue actions and audits. It supports running and evidencing the system; it does not certify it. Not built: energy
-  baselines (EnPIs) with normalisation, legal-register tracking, document control.
+  overdue actions and audits. It supports running and evidencing the system; it does not certify it. 
+- *Legal and permit register*, *nonconformities* (root cause → corrective actions → verification → closure, major ones closed by a
+  second person) and *energy baselines* (monthly consumption regressed on TEU or vessel calls; later months compared with the
+  expected level, current month excluded). Overdue items, permits expiring within 60 days and non-compliance raise alerts.
+  Still not built: document control, operational inspections, permit limit exceedance checks, significant-energy-user ranking.
 - Migrations are tracked in `esg.schema_migration` and applied at startup.
 
 **Not yet built (planned rounds):** per-framework completeness, AI document classification, data-logger connectors, report templates. Vendor ontology size, patents,
@@ -172,7 +175,7 @@ SOC 2 and 24/7 support cannot be matched by code alone.
 ```bash
 DATABASE_URL=postgresql://... pytest -q tests
 ```
-39 tests cover role boundaries, ingestion edge cases, four-eyes, audit immutability, calculation arithmetic
+42 tests cover role boundaries, ingestion edge cases, four-eyes, audit immutability, calculation arithmetic
 against independent queries, rejected-record exclusion, KPI formulas, exports, alert de-duplication,
 auto-resolve, webhook delivery, and rule-parameter injection guards, period locks, collection links, source trace, and the evidence flow
 (OCR of a synthetic meter photo, flags, atomic linking, rollover, derived consumption, field-operator limits).

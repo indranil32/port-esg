@@ -1,7 +1,7 @@
 """Environmental (ISO 14001) and energy (ISO 50001) management workflows: objectives tied to KPIs, action plans,
 internal audits (findings are the existing audit_finding records, linked by audit reference) and management reviews
 that snapshot where the system stands. This supports running the management system; it does not certify it."""
-from datetime import date
+from datetime import date, timedelta
 
 import psycopg
 from fastapi import APIRouter, Depends, HTTPException
@@ -120,7 +120,8 @@ def add_action(oid: str, body: Action, user: dict = Depends(WRITE)):
 @router.get("/actions")
 def actions(overdue: bool = False, user: dict = Depends(READ)):
     with db.conn() as c:
-        return db.rows(c, """SELECT a.*, o.title AS objective, o.standard FROM ems_action a JOIN ems_objective o USING (objective_id)
+        return db.rows(c, """SELECT a.*, coalesce(o.title, 'Nonconformity ' || n.nc_ref) AS objective, coalesce(o.standard, n.standard) AS standard
+                             FROM ems_action a LEFT JOIN ems_objective o ON o.objective_id = a.objective_id LEFT JOIN nonconformity n ON n.nc_id = a.nc_id
                              WHERE (NOT %s OR (a.status <> 'done' AND a.due_date < current_date)) ORDER BY a.due_date NULLS LAST""", (overdue,))
 
 
@@ -230,12 +231,24 @@ def add_review(body: Review, user: dict = Depends(WRITE)):
 # ---------------------------------------------------------------- alert evaluator
 def f_ems_overdue(c, p):
     out = []
-    for r in db.rows(c, """SELECT a.action_id, a.title, a.owner, a.due_date, o.title AS objective FROM ems_action a JOIN ems_objective o USING (objective_id)
-                           WHERE a.status <> 'done' AND o.status = 'active' AND a.due_date < current_date"""):
+    for r in db.rows(c, """SELECT a.action_id, a.title, a.owner, a.due_date, coalesce(o.title, 'Nonconformity ' || n.nc_ref) AS objective FROM ems_action a LEFT JOIN ems_objective o ON o.objective_id = a.objective_id LEFT JOIN nonconformity n ON n.nc_id = a.nc_id
+                           WHERE a.status <> 'done' AND (o.status = 'active' OR n.status IN ('open', 'corrective_action', 'verification')) AND a.due_date < current_date"""):
         out.append(dict(dedupe_key=f"action:{r['action_id']}", title=f"Overdue EMS action: {r['title']}",
                         message=f"Due {r['due_date']} ({(date.today() - r['due_date']).days} days ago), owner {r['owner'] or 'unassigned'}; objective: {r['objective']}.",
                         context={"action_id": str(r["action_id"])}))
     for r in db.rows(c, "SELECT audit_id, audit_ref, standard, planned_date FROM ems_audit WHERE status = 'planned' AND planned_date < current_date"):
         out.append(dict(dedupe_key=f"audit:{r['audit_id']}", title=f"Internal audit not completed: {r['audit_ref']}",
                         message=f"{r['standard']} audit was planned for {r['planned_date']}.", context={"audit_id": str(r["audit_id"])}))
+    for r in db.rows(c, """SELECT requirement_id, ref, title, permit_expiry, review_due, status FROM legal_requirement
+                           WHERE permit_expiry <= current_date + 60 OR review_due < current_date OR status = 'non_compliant'"""):
+        if r["status"] == "non_compliant":
+            why, tag = "Marked non-compliant", "nc"
+        elif r["permit_expiry"] and r["permit_expiry"] <= date.today() + timedelta(days=60):
+            why, tag = f"Permit expires {r['permit_expiry']}", "permit"
+        else:
+            why, tag = f"Review overdue since {r['review_due']}", "review"
+        out.append(dict(dedupe_key=f"legal:{r['requirement_id']}:{tag}", title=f"Legal register: {r['ref']} {r['title']}", message=why + ".",
+                        context={"requirement_id": str(r["requirement_id"])}))
+    for r in db.rows(c, "SELECT nc_id, nc_ref, due_date FROM nonconformity WHERE status <> 'closed' AND due_date < current_date"):
+        out.append(dict(dedupe_key=f"nc:{r['nc_id']}", title=f"Overdue nonconformity: {r['nc_ref']}", message=f"Due {r['due_date']}.", context={"nc_id": str(r["nc_id"])}))
     return out

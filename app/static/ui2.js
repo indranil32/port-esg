@@ -73,7 +73,7 @@ ROUTES.ems = emsView;
 const EMS = { tab: "objectives" };
 async function emsView(v) {
   const t = EMS.tab, w = has("esg_admin", "data_owner");
-  const tabs = [["objectives", "Objectives & actions"], ["audits", "Internal audits"], ["reviews", "Management reviews"]]
+  const tabs = [["objectives", "Objectives & actions"], ["nc", "Nonconformities"], ["legal", "Legal & permits"], ["enpi", "Energy baselines"], ["audits", "Internal audits"], ["reviews", "Management reviews"]]
     .map(([k, l]) => `<button class="${k === t ? "primary" : ""}" data-act="emsTab" data-t="${k}">${l}</button>`).join(" ");
   let body = "";
   if (t === "objectives") {
@@ -88,6 +88,31 @@ async function emsView(v) {
       <div class="field"><label>Objective</label><input name="title" required></div><div class="field"><label>Linked KPI (optional)</label><select name="metric_id"><option value=""></option>${metrics.map(m => `<option value="${m.id}">${esc(m.label)}</option>`).join("")}</select></div>
       <div class="field"><label>Baseline</label><input name="baseline_value" type="number" step="any"></div><div class="field"><label>Target</label><input name="target_value" type="number" step="any"></div>
       <div class="field"><label>Target date</label><input name="target_date" type="date"></div><div class="field"><label>Owner</label><input name="owner"></div></div><button class="primary">Add objective</button></form>` : ""}`;
+  } else if (t === "legal") {
+    const L = await api("/ems/legal"), CL = { compliant: "good", non_compliant: "bad", under_review: "warn" };
+    body = `<div class="scroll"><table><tr><th>Ref</th><th>Requirement</th><th>Kind</th><th>Permit expiry</th><th>Next review</th><th>Status</th><th></th></tr>${L.map(l => `<tr><td>${esc(l.ref)}</td><td>${esc(l.title)}<div class="muted small">${esc(l.authority || "")} ${esc(l.obligation || "")}</div></td><td class="small">${l.kind}</td>
+      <td class="small">${d10(l.permit_expiry)}${l.permit_soon ? ` <span class="chip bad">soon</span>` : ""}</td><td class="small">${d10(l.review_due)}${l.review_overdue ? ` <span class="chip bad">overdue</span>` : ""}</td>
+      <td><span class="chip ${CL[l.status]}">${l.status.replace("_", " ")}</span><div class="muted small">${esc(l.evaluation_note || "")}</div></td><td>${w ? `<button class="sm" data-act="emsEval" data-id="${l.requirement_id}">Evaluate…</button>` : ""}</td></tr>`).join("") || `<tr><td colspan="7" class="muted">Nothing registered yet.</td></tr>`}</table></div>
+    ${w ? `<h3>Add a requirement or permit</h3><form data-form="emslegal"><div class="form"><div class="field"><label>Reference</label><input name="ref" required></div><div class="field"><label>Title</label><input name="title" required></div>
+      <div class="field"><label>Kind</label><select name="kind"><option>law</option><option>permit</option><option>standard</option><option>customer</option><option>other</option></select></div><div class="field"><label>Authority</label><input name="authority"></div>
+      <div class="field"><label>Obligation</label><input name="obligation"></div><div class="field"><label>Permit expiry</label><input type="date" name="permit_expiry"></div><div class="field"><label>Next review</label><input type="date" name="review_due"></div></div><button class="primary">Add</button></form>` : ""}`;
+  } else if (t === "nc") {
+    const N = await api("/ems/nonconformities");
+    body = `<div class="scroll"><table><tr><th>Ref</th><th>Issue</th><th>Severity</th><th>Status</th><th>Due</th><th>Actions</th><th></th></tr>${N.map(n => `<tr><td>${esc(n.nc_ref)}</td><td>${esc(n.description)}<div class="muted small">${n.source}${n.root_cause ? " · cause: " + esc(n.root_cause) : ""}${n.effectiveness_note ? " · check: " + esc(n.effectiveness_note) : ""}</div></td><td>${n.severity}</td><td>${n.status.replace("_", " ")}</td>
+      <td class="small">${d10(n.due_date)}${n.overdue ? ` <span class="chip bad">overdue</span>` : ""}</td><td class="small">${n.actions_done}/${n.actions}</td>
+      <td>${w ? (n.status === "open" ? `<button class="sm" data-act="ncCause" data-id="${n.nc_id}">Root cause…</button>` : n.status === "corrective_action" ? `<button class="sm" data-act="ncAction" data-id="${n.nc_id}">+ Action</button> <button class="sm" data-act="ncVerify" data-id="${n.nc_id}">To verification</button>` : n.status === "verification" ? `<button class="sm" data-act="ncClose" data-id="${n.nc_id}">Close…</button>` : "") : ""}</td></tr>`).join("") || `<tr><td colspan="7" class="muted">None raised.</td></tr>`}</table></div>
+    <p class="muted small">Flow: raise → root cause → corrective actions → all done → verification → close with an effectiveness check. A major one must be closed by someone other than who raised it.</p>
+    ${w ? `<h3>Raise a nonconformity</h3><form data-form="emsnc"><div class="form"><div class="field"><label>Reference</label><input name="nc_ref" required></div><div class="field"><label>Source</label><select name="source"><option>audit</option><option>incident</option><option>complaint</option><option>inspection</option><option>legal</option><option>other</option></select></div>
+      <div class="field"><label>Standard</label><select name="standard"><option value="">–</option><option value="ISO14001">ISO 14001</option><option value="ISO50001">ISO 50001</option></select></div><div class="field"><label>Severity</label><select name="severity"><option>minor</option><option>major</option></select></div>
+      <div class="field"><label>Description</label><input name="description" required></div><div class="field"><label>Due</label><input type="date" name="due_date"></div></div><button class="primary">Raise</button></form>` : ""}`;
+  } else if (t === "enpi") {
+    const [B, ents] = await Promise.all([api("/ems/enpi/baselines"), api("/lookup/entity")]);
+    body = `<p class="muted small">Energy performance against a baseline: monthly consumption is modelled on an activity driver (TEU moved or vessel calls) over a baseline period; later months are compared with what the model expected for the same activity.</p>
+    ${B.map(b => `<div class="card" style="margin:8px 0"><b>${esc(b.name)}</b> · ${esc(b.entity)} · driver ${b.driver} · ${d10(b.baseline_start)} to ${d10(b.baseline_end)} · ${b.n_months} months · fit R² ${b.r2 == null ? "n/a" : Number(b.r2).toFixed(2)}${b.r2 != null && b.r2 < 0.5 ? ` <span class="chip warn">weak fit</span>` : ""}
+      <div id="enpi-${b.baseline_id}"><button class="sm" data-act="enpiShow" data-id="${b.baseline_id}">Show performance this year</button></div></div>`).join("") || `<p class="muted">No baselines yet. Needs at least 6 months of meter data.</p>`}
+    ${w ? `<h3>Create a baseline</h3><form data-form="emsenpi"><div class="form"><div class="field"><label>Name</label><input name="name" required></div><div class="field"><label>Entity</label><select name="entity_id">${ents.map(e => `<option value="${e.id}">${esc(e.label)}</option>`).join("")}</select></div>
+      <div class="field"><label>Driver</label><select name="driver"><option value="teu">TEU moved</option><option value="vessel_calls">Vessel calls</option><option value="none">None (flat)</option></select></div>
+      <div class="field"><label>Baseline from</label><input type="date" name="s" required></div><div class="field"><label>to</label><input type="date" name="e" required></div></div><button class="primary">Create baseline</button></form>` : ""}`;
   } else if (t === "audits") {
     const au = await api("/ems/audits");
     body = `<div class="scroll"><table><tr><th>Ref</th><th>Standard</th><th>Scope</th><th>Planned</th><th>Auditor</th><th>Status</th><th>Findings (open)</th><th></th></tr>${au.map(a => `<tr><td>${esc(a.audit_ref)}</td><td class="small">${a.standard}</td><td class="small">${esc(a.scope || "")}</td><td class="small">${d10(a.planned_date)}${a.overdue ? ` <span class="chip bad">overdue</span>` : ""}</td><td class="small">${esc(a.auditor || "")}</td><td>${a.status === "done" ? "Done " + d10(a.performed_date) : "Planned"}</td><td class="small">${a.findings} (${a.open_findings})</td>
@@ -118,4 +143,22 @@ Object.assign(FORMS, {
   emsobj: f => guard(async () => { await api("/ems/objectives", { method: "POST", json: { standard: f.standard.value, title: f.title.value, metric_id: f.metric_id.value || null, baseline_value: num(f.baseline_value.value), target_value: num(f.target_value.value), target_date: f.target_date.value || null, owner: f.owner.value || null } }); route(); }),
   emsaudit: f => guard(async () => { await api("/ems/audits", { method: "POST", json: { audit_ref: f.audit_ref.value, standard: f.standard.value, scope: f.scope.value || null, planned_date: f.planned_date.value, auditor: f.auditor.value || null } }); route(); }),
   emsreview: f => guard(async () => { await api("/ems/reviews", { method: "POST", json: { standard: f.standard.value, review_date: f.review_date.value, attendees: f.attendees.value || null, decisions: f.decisions.value || null } }); toast("Review recorded"); route(); }),
+});
+
+Object.assign(ACT, {
+  emsEval: el => { const st = prompt("Status: compliant, non_compliant or under_review"); if (!st) return; const note = prompt("Note (required if non_compliant):") || null; const nr = prompt("Next review date (YYYY-MM-DD, optional):") || null;
+    guard(async () => { await api(`/ems/legal/${el.dataset.id}/evaluate`, { method: "POST", json: { status: st, note, next_review: nr } }); route(); }); },
+  ncCause: el => { const c = prompt("Root cause:"); if (c) guard(async () => { await api(`/ems/nonconformities/${el.dataset.id}/root-cause`, { method: "POST", json: { root_cause: c } }); route(); }); },
+  ncAction: el => { const title = prompt("Corrective action:"); if (!title) return; const due = prompt("Due (YYYY-MM-DD, optional):") || null; const owner = prompt("Owner (optional):") || null;
+    guard(async () => { await api(`/ems/nonconformities/${el.dataset.id}/actions`, { method: "POST", json: { title, due_date: due, owner } }); route(); }); },
+  ncVerify: el => guard(async () => { await api(`/ems/nonconformities/${el.dataset.id}/verify`, { method: "POST" }); route(); }),
+  ncClose: el => { const n = prompt("How did you check the fix worked?"); if (n) guard(async () => { await api(`/ems/nonconformities/${el.dataset.id}/close`, { method: "POST", json: { effectiveness_note: n } }); route(); }); },
+  enpiShow: el => guard(async () => { const y = new Date().getFullYear(), p = await api(`/ems/enpi/baselines/${el.dataset.id}/performance?start=${y}-01-01&end=${new Date().toISOString().slice(0, 10)}`);
+    $("#enpi-" + el.dataset.id).innerHTML = `<p class="small">Actual ${fmt(p.actual_kwh)} kWh vs expected ${fmt(p.expected_kwh)} kWh: <b>${p.saving_pct == null ? "n/a" : p.saving_pct + "%"}</b> ${p.saving_kwh >= 0 ? "below" : "above"} expectation. <span class="muted">${esc(p.note)}</span></p>
+      <table><tr><th>Month</th><th class="num">Actual</th><th class="num">Expected</th><th class="num">Saving</th><th class="num">Cumulative</th></tr>${p.months.map(m => `<tr><td>${d10(m.month).slice(0, 7)}</td><td class="num">${fmt(m.actual_kwh)}</td><td class="num">${fmt(m.expected_kwh)}</td><td class="num">${fmt(m.saving_kwh)}</td><td class="num">${fmt(m.cumulative_saving_kwh)}</td></tr>`).join("")}</table>`; }),
+});
+Object.assign(FORMS, {
+  emslegal: f => guard(async () => { await api("/ems/legal", { method: "POST", json: { ref: f.ref.value, title: f.title.value, kind: f.kind.value, authority: f.authority.value || null, obligation: f.obligation.value || null, permit_expiry: f.permit_expiry.value || null, review_due: f.review_due.value || null } }); route(); }),
+  emsnc: f => guard(async () => { await api("/ems/nonconformities", { method: "POST", json: { nc_ref: f.nc_ref.value, source: f.source.value, standard: f.standard.value || null, severity: f.severity.value, description: f.description.value, due_date: f.due_date.value || null } }); route(); }),
+  emsenpi: f => guard(async () => { await api("/ems/enpi/baselines", { method: "POST", json: { name: f.name.value, entity_id: f.entity_id.value, driver: f.driver.value, baseline_start: f.s.value, baseline_end: f.e.value } }); toast("Baseline created"); route(); }),
 });
