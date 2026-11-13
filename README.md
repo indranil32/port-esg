@@ -132,9 +132,14 @@ and `build/esg_schemas.json` into `db/01_schema.sql` and `app/esg_schemas.json`.
 - *Anomaly detection*: alert rule type `data_anomaly` compares recent fuel, meter-interval or water values with their own
   history (median and MAD, modified z-score) and raises an alert showing the usual level. No model or training, so every
   flag is explainable; it needs about 8 earlier records per series. Seeded rules are on by default; tune them under Alerts.
+- *Environmental and energy management* (EMS page): ISO 14001 / 50001 objectives linked to KPIs with progress from baseline to
+  target, action plans with owners and due dates, internal audit planning (findings are the existing audit findings, linked by
+  audit reference), and management reviews that store a snapshot of KPIs, findings and overdue actions. An alert rule flags
+  overdue actions and audits. It supports running and evidencing the system; it does not certify it. Not built: energy
+  baselines (EnPIs) with normalisation, legal-register tracking, document control.
 - Migrations are tracked in `esg.schema_migration` and applied at startup.
 
-**Not yet built (planned rounds):** per-framework completeness, AI document classification, data-logger connectors, report templates, ISO 14001 / 50001 workflows. Vendor ontology size, patents,
+**Not yet built (planned rounds):** per-framework completeness, AI document classification, data-logger connectors, report templates. Vendor ontology size, patents,
 SOC 2 and 24/7 support cannot be matched by code alone.
 
 ## Known limits (read before production)
@@ -167,7 +172,7 @@ SOC 2 and 24/7 support cannot be matched by code alone.
 ```bash
 DATABASE_URL=postgresql://... pytest -q tests
 ```
-38 tests cover role boundaries, ingestion edge cases, four-eyes, audit immutability, calculation arithmetic
+39 tests cover role boundaries, ingestion edge cases, four-eyes, audit immutability, calculation arithmetic
 against independent queries, rejected-record exclusion, KPI formulas, exports, alert de-duplication,
 auto-resolve, webhook delivery, and rule-parameter injection guards, period locks, collection links, source trace, and the evidence flow
 (OCR of a synthetic meter photo, flags, atomic linking, rollover, derived consumption, field-operator limits).

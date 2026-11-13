@@ -120,6 +120,7 @@ RULES = [  # name, type, severity, params, channels
     ("Monthly hours worked missing", "missing_monthly", "warning", {"table": "hours_worked"}, ["email"]),
     ("Suspect field evidence (re-used photo, wrong meter, value not matching photo)", "evidence_flagged", "warning",
      {"lookback_days": 14}, ["email"]),
+    ("Overdue environmental / energy management actions and audits", "ems_overdue", "warning", {}, ["email"]),
     ("Unusual fuel quantity (statistical outlier)", "data_anomaly", "warning", {"detector": "fuel", "lookback_days": 7, "z_threshold": 6}, ["email"]),
     ("Unusual meter interval (statistical outlier)", "data_anomaly", "warning", {"detector": "energy", "lookback_days": 3, "z_threshold": 8}, ["email"]),
     ("Unusual water volume (statistical outlier)", "data_anomaly", "warning", {"detector": "water", "lookback_days": 40, "baseline_days": 365, "min_baseline": 5, "z_threshold": 6}, ["email"]),

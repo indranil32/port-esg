@@ -308,3 +308,34 @@ def test_anomaly_detector_flags_outliers_only(client, H):
     assert bad.status_code == 400
     ok = client.post("/api/alert-rules", headers=H["admin"], json={"name": "ok " + UNIQ(), "rule_type": "data_anomaly", "severity": "warning", "params": params, "channels": [], "recipients": []})
     assert ok.status_code == 200, ok.text
+
+
+# ------------------------------------------------------------------ EMS (ISO 14001 / 50001)
+def test_ems_objectives_actions_audits_reviews(client, H):
+    from app import ems
+    metric = [m for m in client.get("/api/lookup/metric", headers=H["admin"]).json() if m["label"].startswith("WATER_WITHDRAWAL")][0]["id"]
+    body = {"standard": "ISO14001", "title": "Cut water withdrawal " + UNIQ(), "metric_id": metric, "baseline_value": 2000, "target_value": 1000, "owner": "HSE"}
+    assert client.post("/api/ems/objectives", headers=H["auditor"], json=body).status_code == 403
+    assert client.post("/api/ems/objectives", headers=H["admin"], json={**body, "standard": "ISO9001"}).status_code == 400
+    o = client.post("/api/ems/objectives", headers=H["admin"], json=body).json()
+    a = client.post(f"/api/ems/objectives/{o['objective_id']}/actions", headers=H["owner"], json={"title": "Install flow meters", "owner": "Maintenance", "due_date": "2020-01-31"})
+    assert a.status_code == 200
+    listed = [x for x in client.get("/api/ems/objectives?standard=ISO14001", headers=H["auditor"]).json() if x["objective_id"] == o["objective_id"]][0]
+    assert listed["actions"] == 1 and listed["actions_overdue"] == 1
+    assert ems.progress(2000, 1000, 1500) == 50.0 and ems.progress(10, 20, 15) == 50.0 and ems.progress(5, 5, 5) is None
+    with db.conn() as c:
+        assert any(f["context"]["action_id"] == a.json()["action_id"] for f in ems.f_ems_overdue(c, {}))
+    done = client.patch(f"/api/ems/actions/{a.json()['action_id']}", headers=H["owner"], json={"status": "done", "note": "Fitted"})
+    assert done.status_code == 200 and done.json()["completed_at"]
+    with db.conn() as c:
+        assert not any(f["context"]["action_id"] == a.json()["action_id"] for f in ems.f_ems_overdue(c, {}))
+    ref = "IA-" + UNIQ()
+    assert client.post("/api/ems/audits", headers=H["admin"], json={"audit_ref": ref, "standard": "ISO50001", "planned_date": "2020-02-01", "scope": "Terminal"}).status_code == 200
+    assert client.post("/api/ems/audits", headers=H["admin"], json={"audit_ref": ref, "standard": "ISO50001", "planned_date": "2020-02-01"}).status_code == 409
+    au = [x for x in client.get("/api/ems/audits", headers=H["auditor"]).json() if x["audit_ref"] == ref][0]
+    assert au["overdue"] is True
+    assert client.post(f"/api/ems/audits/{au['audit_id']}/complete", headers=H["admin"]).status_code == 200
+    assert client.post(f"/api/ems/audits/{au['audit_id']}/complete", headers=H["admin"]).status_code == 404
+    rv = client.post("/api/ems/reviews", headers=H["admin"], json={"standard": "ISO14001", "review_date": "2026-11-01", "attendees": "EHS, Ops", "decisions": "Extend target"})
+    assert rv.status_code == 200 and "open_findings" in rv.json()["snapshot"] and any(x["title"] == body["title"] for x in rv.json()["snapshot"]["objectives"])
+    assert client.get("/api/ems/reviews", headers=H["auditor"]).status_code == 200

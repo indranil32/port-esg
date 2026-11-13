@@ -184,11 +184,11 @@ def f_missing_monthly(c, p):
             for r in rows]
 
 
-from . import anomaly
+from . import anomaly, ems
 
 EVALUATORS = {"threshold_reading": f_threshold, "new_incident": f_incident, "data_freshness": f_freshness,
               "expiry": f_expiry, "workflow_backlog": f_backlog, "kpi_off_track": f_kpi, "missing_monthly": f_missing_monthly,
-              "evidence_flagged": f_evidence, "data_anomaly": anomaly.find}
+              "evidence_flagged": f_evidence, "data_anomaly": anomaly.find, "ems_overdue": ems.f_ems_overdue}
 
 
 def validate_params(rule_type, p):
