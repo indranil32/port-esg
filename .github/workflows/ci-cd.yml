@@ -45,7 +45,7 @@ jobs:
       - run: ruff check app tests
       - name: Tests with coverage
         run: pytest --cov=app --cov-report=xml --cov-report=term --cov-fail-under=70 --junitxml=junit.xml
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with: { name: test-results, path: "junit.xml\ncoverage.xml" }
 
@@ -156,7 +156,7 @@ jobs:
           echo "::add-mask::$DEMO_PASSWORD"
           export DEMO_PASSWORD
           pytest -p no:cacheprovider -v --durations=10 --junitxml=smoke.xml
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with: { name: smoke-results, path: smoke.xml }
       - name: Roll back on failure
