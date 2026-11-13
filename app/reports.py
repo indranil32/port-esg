@@ -66,7 +66,14 @@ def entities(user: dict = Depends(READERS)):
         return db.rows(c, "SELECT entity_id, parent_entity_id, entity_type, code, name FROM entity ORDER BY entity_type, code")
 
 
-def ghg_rows(c, run_id, group, entity=None):
+APPROACHES = {   # GHG Protocol consolidation: share of each entity's emissions that is counted
+    "all": "1.0",
+    "equity": "(en.equity_share_pct / 100.0)",
+    "operational": "(CASE WHEN en.operational_control THEN 1.0 ELSE 0.0 END)",
+}
+
+
+def ghg_rows(c, run_id, group, entity=None, approach="all"):
     cols = {
         "month": "a.period_start", "scope": "a.scope", "entity": "en.name",
         "category": "coalesce('Cat ' || a.scope3_category::text, 'Scope ' || a.scope::text)",
@@ -74,11 +81,14 @@ def ghg_rows(c, run_id, group, entity=None):
     }
     if group not in cols:
         raise HTTPException(400, f"group must be one of {list(cols)}")
+    if approach not in APPROACHES:
+        raise HTTPException(400, f"approach must be one of {list(APPROACHES)}")
+    w = APPROACHES[approach]
     cte = ENTITY_CTE if entity else ""
     flt = "AND a.entity_id IN (SELECT entity_id FROM d)" if entity else ""
     extra = ", a.scope" if group in ("month", "category", "activity") else ""
     return db.rows(c, f"""{cte}
-        SELECT {cols[group]} AS key{extra}, round(sum(e.co2e_tonnes)::numeric, 2) AS tco2e, count(*) AS activities
+        SELECT {cols[group]} AS key{extra}, round(sum(e.co2e_tonnes * {w})::numeric, 2) AS tco2e, count(*) FILTER (WHERE {w} > 0) AS activities
         FROM ghg_activity_data a JOIN ghg_emission e ON e.activity_id = a.activity_id
         JOIN entity en ON en.entity_id = a.entity_id
         WHERE a.run_id = %(run)s {flt} GROUP BY 1{', 2' if extra else ''} ORDER BY 1{', 2' if extra else ''}""",
@@ -104,10 +114,10 @@ def summary(run_id: str | None = None, entity: str | None = None, user: dict = D
 
 
 @router.get("/reports/ghg")
-def ghg(group: str = "activity", run_id: str | None = None, entity: str | None = None, user: dict = Depends(READERS)):
+def ghg(group: str = "activity", run_id: str | None = None, entity: str | None = None, approach: str = "all", user: dict = Depends(READERS)):
     with db.conn() as c:
         run = resolve_run(c, run_id)
-        return {"run": run, "rows": ghg_rows(c, run["run_id"], group, entity)}
+        return {"run": run, "approach": approach, "rows": ghg_rows(c, run["run_id"], group, entity, approach)}
 
 
 def kpi_rows(c, rid, entity=None):

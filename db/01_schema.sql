@@ -28,6 +28,7 @@ CREATE TABLE esg.entity (
     code text NOT NULL UNIQUE,
     name text NOT NULL,
     operational_control boolean NOT NULL DEFAULT true,
+    equity_share_pct numeric(18,4) NOT NULL DEFAULT 100 CHECK (equity_share_pct BETWEEN 0 AND 100),
     country_code text,
     valid_from date,
     valid_to date,

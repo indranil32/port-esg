@@ -219,3 +219,27 @@ def test_batch_withdraw(client, H):
     client.post("/api/periods/lock", headers=H["admin"], json={"run_id": run["run_id"], "label": "May 2018 (test)", "reason": "t"})
     blocked = client.post(f"/api/batches/{r2['batch_id']}/withdraw", headers=H["owner"], json={"reason": "late"})
     assert blocked.status_code == 409 and "locked" in blocked.text
+
+
+# ------------------------------------------------------------------ consolidation approaches
+def test_consolidation_approaches(client, H):
+    ent = terminal(client, H)
+    client.post("/api/ingest/fuel_transaction", headers=H["owner"], json={"records": [
+        {"entity_id": ent, "fuel_type": "diesel", "litres": 1000, "ts": "2020-06-10T08:00:00Z", "source_record_id": "c-" + UNIQ()}]})
+    run = client.post("/api/calc/run", headers=H["admin"], json={"period_start": "2020-06-01", "period_end": "2020-06-30"}).json()
+    def tot(a):
+        r = client.get(f"/api/reports/ghg?group=scope&run_id={run['run_id']}&approach={a}", headers=H["auditor"])
+        assert r.status_code == 200, r.text
+        return sum(x["tco2e"] for x in r.json()["rows"])
+    full = tot("all")
+    assert full > 0 and tot("equity") == pytest.approx(full)          # default share is 100%
+    with db.conn() as c:
+        c.execute("UPDATE entity SET equity_share_pct = 40, operational_control = false WHERE entity_id = %s", (ent,))
+    try:
+        assert tot("equity") == pytest.approx(full * 0.4, abs=0.02) and tot("operational") == pytest.approx(0, abs=0.01) and tot("all") == pytest.approx(full)
+    finally:
+        with db.conn() as c:
+            c.execute("UPDATE entity SET equity_share_pct = 100, operational_control = true WHERE entity_id = %s", (ent,))
+    assert client.get(f"/api/reports/ghg?approach=bogus&run_id={run['run_id']}", headers=H["auditor"]).status_code == 400
+    with db.conn() as c, pytest.raises(Exception):
+        c.execute("UPDATE entity SET equity_share_pct = 150 WHERE entity_id = %s", (ent,))

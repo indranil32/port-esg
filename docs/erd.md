@@ -96,6 +96,7 @@ erDiagram
         string code UK
         string name
         boolean operational_control
+        float equity_share_pct
         string country_code
         date valid_from
         date valid_to

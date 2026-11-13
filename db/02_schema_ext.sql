@@ -234,3 +234,12 @@ CREATE TABLE IF NOT EXISTS esg.ingest_batch_record (
     PRIMARY KEY (batch_id, record_id)
 );
 INSERT INTO esg.schema_migration (name) VALUES ('003_ingest_batches.sql') ON CONFLICT DO NOTHING;
+
+-- 004 equity share
+ALTER TABLE esg.entity ADD COLUMN IF NOT EXISTS equity_share_pct numeric(18,4) NOT NULL DEFAULT 100;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'entity_equity_share_range') THEN
+    ALTER TABLE esg.entity ADD CONSTRAINT entity_equity_share_range CHECK (equity_share_pct BETWEEN 0 AND 100);
+  END IF;
+END $$;
+INSERT INTO esg.schema_migration (name) VALUES ('004_equity_share.sql') ON CONFLICT DO NOTHING;

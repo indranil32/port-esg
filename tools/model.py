@@ -42,6 +42,7 @@ entity_type text nn in=port|terminal|business_unit|facility|tenant
 code text nn uq
 name text nn
 operational_control bool nn def=true
+equity_share_pct num nn def=100 range=0,100
 country_code text
 valid_from date
 valid_to date"""),

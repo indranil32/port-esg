@@ -167,15 +167,16 @@ async function emissions(v) {
     <div class="card" style="margin:12px 0"><div class="row">
       <div><label>Run</label><select id="f-run">${ok.map(r => `<option value="${r.run_id}">${d10(r.period_start)} to ${d10(r.period_end)} · ${String(r.run_id).slice(0, 8)}${r.locked ? " 🔒" : ""}</option>`).join("")}</select></div>
       <div><label>Entity</label><select id="f-ent"><option value="">All (port)</option>${ents.filter(e => e.entity_type !== "port").map(e => `<option value="${e.entity_id}">${esc(e.name)}</option>`).join("")}</select></div>
+      <div><label>Consolidation</label><select id="f-app"><option value="all">All entities (100%)</option><option value="equity">Equity share</option><option value="operational">Operational control</option></select></div>
       <div><label>Group by</label><select id="f-grp"><option value="activity">Activity</option><option value="category">Scope / category</option><option value="entity">Entity</option><option value="month">Month</option><option value="scope">Scope</option></select></div></div></div>
     <div id="ghg-out"></div><p class="muted small" style="margin-top:10px">Scope 1: fuel and refrigerants. Scope 2: grid and shore-power electricity. Scope 3: purchased goods (cat 1), vessel auxiliary engines at berth without shore power (cat 9), tenant electricity (cat 13). Emission factors are illustrative until replaced with approved ones.</p>`;
   const load = () => guard(async () => {
-    const q = `?run_id=${$("#f-run").value}${$("#f-ent").value ? "&entity=" + $("#f-ent").value : ""}&group=${$("#f-grp").value}`;
+    const q = `?run_id=${$("#f-run").value}${$("#f-ent").value ? "&entity=" + $("#f-ent").value : ""}&group=${$("#f-grp").value}&approach=${$("#f-app").value}`;
     const r = await api("/reports/ghg" + q), rows = r.rows, tot = rows.reduce((a, x) => a + x.tco2e, 0);
     $("#ghg-out").innerHTML = `<div class="card"><div class="row sb"><h2>${fmt(tot)} tCO₂e</h2><span class="muted small">${rows.length} rows</span></div>${hbars(rows.map(x => ({ label: (x.key + "").slice(0, 28) + (x.scope && $("#f-grp").value !== "scope" ? ` · S${x.scope}` : ""), value: x.tco2e })).slice(0, 14))}
       <details open><summary>Table</summary><div class="scroll"><table><tr><th>${$("#f-grp").value}</th><th>Scope</th><th class="num">tCO₂e</th><th class="num">Share</th><th class="num">Activity rows</th></tr>${rows.map(x => `<tr><td>${esc(/^\d{4}-\d{2}-\d{2}/.test(String(x.key)) ? String(x.key).slice(0, 7) : x.key)}</td><td>${x.scope ?? ""}</td><td class="num">${fmt(x.tco2e, 1)}</td><td class="num">${fmt(x.tco2e / tot * 100, 1)}%</td><td class="num">${x.activities}</td></tr>`).join("")}</table></div></details></div>`;
   });
-  ["f-run", "f-ent", "f-grp"].forEach(id => $("#" + id).addEventListener("change", load)); load();
+  ["f-run", "f-ent", "f-grp", "f-app"].forEach(id => $("#" + id).addEventListener("change", load)); load();
 }
 
 /* ---------- KPIs ---------- */

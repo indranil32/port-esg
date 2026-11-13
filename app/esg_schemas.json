@@ -1214,6 +1214,11 @@
         "operational_control": {
           "type": "boolean"
         },
+        "equity_share_pct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
         "country_code": {
           "type": [
             "string",
