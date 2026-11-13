@@ -12,9 +12,16 @@ PERIOD = ("2020-03-01", "2020-03-31")          # factors are valid from 2020-01-
 
 
 @pytest.fixture(autouse=True)
-def no_stale_locks():
-    if BASE_URL:        # deployed instance: no direct database access from the test runner
+def no_stale_locks(request):
+    if BASE_URL:        # deployed instance: unlock only the periods this suite locked (label ends "(test)") through the API
+        def release():
+            client, H = request.getfixturevalue("client"), request.getfixturevalue("H")
+            for lk in client.get("/api/periods", headers=H["admin"]).json():
+                if lk["active"] and str(lk["label"]).endswith("(test)"):
+                    client.post(f"/api/periods/{lk['lock_id']}/unlock", headers=H["admin"], json={"reason": "test cleanup"})
+        release()
         yield
+        release()
         return
     with db.conn() as c:
         c.execute("UPDATE reporting_period_lock SET unlocked_by = 'test', unlocked_at = now() WHERE unlocked_at IS NULL")
