@@ -454,10 +454,16 @@ def decide(table: str, rid: str, body: Decision, user: dict = Depends(require("e
         if table == "tenant_esg_submission":
             sets += ", status = %s, reviewer = %s, review_date = current_date"
             params += ["approved" if new == "validated" else "rejected", user["email"]]
-        after = db.row(c, f"UPDATE esg.{table} SET {sets} WHERE {pk}::text = %s RETURNING *", params + [rid])
+        try:
+            after = db.row(c, f"UPDATE esg.{table} SET {sets} WHERE {pk}::text = %s RETURNING *", params + [rid])
+        except psycopg.errors.CheckViolation as e:
+            raise HTTPException(409, pg_message(e))
         db.audit(c, user["email"], body.action, table, rid, before={"validation_status": "pending"},
                  after={"validation_status": new}, detail=body.comment or None)
         if new == "validated":
-            evidence.before_decision(c, table, after, user["email"])   # may veto, e.g. impossible meter sequence
+            try:
+                evidence.before_decision(c, table, after, user["email"])   # may veto, e.g. impossible meter sequence
+            except psycopg.errors.CheckViolation as e:
+                raise HTTPException(409, pg_message(e))
             after = db.row(c, f"SELECT * FROM esg.{table} WHERE {pk}::text = %s", (rid,))
     return after

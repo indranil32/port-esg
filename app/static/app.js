@@ -87,9 +87,9 @@ const NAV = [
   ["dashboard", "Dashboard", ["esg_admin", "data_owner", "auditor"]], ["emissions", "GHG inventory", ["esg_admin", "data_owner", "auditor"]],
   ["kpis", "KPIs & targets", ["esg_admin", "data_owner", "auditor"]], ["disclosures", "Disclosures", ["esg_admin", "data_owner", "auditor"]],
   ["field", "Field capture", ["field_operator", "esg_admin", "data_owner"]], ["capture", "Data capture", ["esg_admin", "data_owner", "tenant", "field_operator"]], ["approvals", "Approvals", ["esg_admin", "data_owner", "auditor"]],
-  ["alerts", "Alerts", ["esg_admin", "data_owner", "auditor"]], ["audit", "Audit log", ["esg_admin", "auditor"]], ["admin", "Admin", ["esg_admin"]],
+  ["alerts", "Alerts", ["esg_admin", "data_owner", "auditor"]], ["trace", "Source trace", ["esg_admin", "data_owner", "auditor"]], ["audit", "Audit log", ["esg_admin", "auditor"]], ["admin", "Admin", ["esg_admin"]],
 ];
-const ROUTES = { field, dashboard, emissions, kpis, disclosures, capture, approvals, alerts, audit, admin };
+const ROUTES = { trace: (v) => traceView(v), field, dashboard, emissions, kpis, disclosures, capture, approvals, alerts, audit, admin };
 function logout() { localStorage.removeItem("esg_token"); S.token = null; S.user = null; renderLogin(); }
 function renderLogin(err) {
   $("#app").innerHTML = `<div class="login"><div class="card"><h1>ESG System of Record</h1><p class="muted">Sign in to continue.</p>
@@ -165,7 +165,7 @@ async function emissions(v) {
   if (!ok.length) { v.innerHTML = noRun(new Error("Run a calculation to build the inventory.")); return; }
   v.innerHTML = `<div class="row sb"><h1>GHG inventory</h1><div class="row"><button data-act="csv" data-p="ghg.csv">Export CSV</button><button data-act="annual">Annual report</button>${has("esg_admin", "data_owner") ? `<button data-act="calcDialog">Recalculate…</button>` : ""}</div></div>
     <div class="card" style="margin:12px 0"><div class="row">
-      <div><label>Run</label><select id="f-run">${ok.map(r => `<option value="${r.run_id}">${d10(r.period_start)} to ${d10(r.period_end)} · ${String(r.run_id).slice(0, 8)}</option>`).join("")}</select></div>
+      <div><label>Run</label><select id="f-run">${ok.map(r => `<option value="${r.run_id}">${d10(r.period_start)} to ${d10(r.period_end)} · ${String(r.run_id).slice(0, 8)}${r.locked ? " 🔒" : ""}</option>`).join("")}</select></div>
       <div><label>Entity</label><select id="f-ent"><option value="">All (port)</option>${ents.filter(e => e.entity_type !== "port").map(e => `<option value="${e.entity_id}">${esc(e.name)}</option>`).join("")}</select></div>
       <div><label>Group by</label><select id="f-grp"><option value="activity">Activity</option><option value="category">Scope / category</option><option value="entity">Entity</option><option value="month">Month</option><option value="scope">Scope</option></select></div></div></div>
     <div id="ghg-out"></div><p class="muted small" style="margin-top:10px">Scope 1: fuel and refrigerants. Scope 2: grid and shore-power electricity. Scope 3: purchased goods (cat 1), vessel auxiliary engines at berth without shore power (cat 9), tenant electricity (cat 13). Emission factors are illustrative until replaced with approved ones.</p>`;
@@ -429,7 +429,7 @@ async function audit(v) {
 async function auFilter() {
   const p = new URLSearchParams(); [["actor", "au-a"], ["table", "au-t"], ["action", "au-x"]].forEach(([k, id]) => { const val = $("#" + id).value.trim(); if (val) p.set(k, val); });
   const rows = await api("/audit-log?" + p);
-  $("#au-out").innerHTML = `<div class="scroll"><table><tr><th>When</th><th>Who</th><th>Action</th><th>Table</th><th>Record</th><th>Detail</th></tr>${rows.map(r => `<tr><td class="small">${dt16(r.ts)}</td><td class="small">${esc(r.actor)}</td><td>${esc(r.action)}</td><td class="small">${esc(r.table_name || "")}</td><td class="small">${esc((r.record_id || "").slice(0, 13))}</td><td class="small">${esc(r.detail || "")}${r.after ? `<details><summary>changes</summary>${r.before ? `<pre>before: ${esc(JSON.stringify(r.before, null, 1))}</pre>` : ""}<pre>after: ${esc(JSON.stringify(r.after, null, 1).slice(0, 1500))}</pre></details>` : ""}</td></tr>`).join("")}</table></div>`;
+  $("#au-out").innerHTML = `<div class="scroll"><table><tr><th>When</th><th>Who</th><th>Action</th><th>Table</th><th>Record</th><th>Detail</th><th>IP / request</th></tr>${rows.map(r => `<tr><td class="small">${dt16(r.ts)}</td><td class="small">${esc(r.actor)}</td><td>${esc(r.action)}</td><td class="small">${esc(r.table_name || "")}</td><td class="small">${esc((r.record_id || "").slice(0, 13))}</td><td class="small">${esc(r.detail || "")}${r.after ? `<details><summary>changes</summary>${r.before ? `<pre>before: ${esc(JSON.stringify(r.before, null, 1))}</pre>` : ""}<pre>after: ${esc(JSON.stringify(r.after, null, 1).slice(0, 1500))}</pre></details>` : ""}</td><td class="small muted">${esc(r.ip || "")}<br>${esc(r.request_id || "")}</td></tr>`).join("")}</table></div>`;
 }
 async function admin(v) {
   const [users, src, tenants] = await Promise.all([api("/admin/users"), api("/sources"), api("/lookup/tenant")]);
@@ -439,7 +439,8 @@ async function admin(v) {
     <div class="field"><label>Tenant (tenant role only)</label><select name="tenant_id"><option value=""></option>${tenants.map(t => `<option value="${t.id}">${esc(t.label)}</option>`).join("")}</select></div>
     <div class="field"><label>Initial password (10+ chars)</label><input name="password" type="password" minlength="10" required></div></div><button class="primary">Create user</button></form></div>
     <div class="card"><h2>Source systems</h2><div class="scroll"><table><tr><th>Code</th><th>Name</th><th>Class</th><th>Mode</th><th>Refresh</th></tr>${src.map(s => `<tr><td><b>${esc(s.code)}</b></td><td>${esc(s.name)}</td><td class="small">${esc(s.source_class)}</td><td>${esc(s.ingestion_mode || "")}</td><td>${esc(s.refresh_frequency || "")}</td></tr>`).join("")}</table></div>
-    <p class="muted small">External systems post to <code>POST /api/ingest/{table}</code> with a bearer token. Interactive API docs: <a href="/docs" target="_blank">/docs</a>.</p></div>`;
+    <div id="adm-extra"></div><p class="muted small">External systems post to <code>POST /api/ingest/{table}</code> with a bearer token. Interactive API docs: <a href="/docs" target="_blank">/docs</a>.</p></div>`;
+  adminExtra();
 }
 
 /* ---------- actions ---------- */

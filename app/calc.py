@@ -93,6 +93,11 @@ def month_bounds(m, start, end):
 
 
 def run_calculation(c, actor, start, end):
+    from .periods import locked_overlap
+    lk = locked_overlap(c, start, end)
+    if lk:
+        raise ValueError(f"Period \"{lk['label']}\" ({lk['period_start']} to {lk['period_end']}) is locked. "
+                         f"Unlock it with a reason before recalculating, or choose dates outside it.")
     root = root_entity(c)
     run = db.row(c, """
         INSERT INTO calc_run (period_start, period_end, triggered_by, factor_set_version)

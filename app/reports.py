@@ -56,7 +56,8 @@ def run_calc(body: CalcBody, user: dict = Depends(require("esg_admin", "data_own
 @router.get("/runs")
 def runs(user: dict = Depends(READERS)):
     with db.conn() as c:
-        return db.rows(c, "SELECT * FROM calc_run ORDER BY started_at DESC LIMIT 50")
+        return db.rows(c, "SELECT r.*, EXISTS (SELECT 1 FROM reporting_period_lock l WHERE l.run_id = r.run_id AND l.unlocked_at IS NULL) AS locked "
+                          "FROM calc_run r ORDER BY started_at DESC LIMIT 50")
 
 
 @router.get("/entities")

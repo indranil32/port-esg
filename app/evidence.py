@@ -201,7 +201,10 @@ def sequence_flags(c, meter_id, value, read_at, exclude_rid=None, rollover=False
     if delta < 0 and not rollover:
         fl.append(flag("reading_decreased", "critical",
                        f"Lower than the previous reading ({prev['register_value']:g} on {prev['read_at']:%Y-%m-%d}). Mark as rollover if the dial wrapped."))
-    elif delta >= 0:
+    elif delta == 0:
+        fl.append(flag("unchanged_reading", "warning",
+                       f"Identical to the previous reading ({prev['register_value']:g} on {prev['read_at']:%Y-%m-%d}). A running meter should have advanced; check it is working and the photo is new."))
+    else:
         hist = db.rows(c, "SELECT consumption_raw / greatest(extract(epoch FROM (read_at - lag_t)) / 86400, 0.04) AS per_day FROM ("
                           "SELECT consumption_raw, read_at, lag(read_at) OVER (ORDER BY read_at) AS lag_t "
                           "FROM meter_register_reading WHERE meter_id = %s AND validation_status = 'validated' "

@@ -2,15 +2,16 @@
 import asyncio
 import logging
 import os
+import uuid
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import Depends, FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.concurrency import run_in_threadpool
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from . import alerts, auth, capture, db, evidence, reports, seed
+from . import alerts, auth, capture, collect, db, evidence, periods, reports, seed, trace
 from .auth import current_user, require
 
 log = logging.getLogger("esg")
@@ -33,8 +34,23 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="ESG System of Record", version="1.0", lifespan=lifespan)
+@app.middleware("http")
+async def request_context(request: Request, call_next):
+    """Tag the request so audit rows carry its id and client address; echo the id to the caller."""
+    rid = uuid.uuid4().hex[:16]
+    fwd = request.headers.get("x-forwarded-for", "").split(",")[0].strip()      # behind a trusted reverse proxy only
+    db.REQUEST_CTX.set({"request_id": rid, "ip": fwd or (request.client.host if request.client else None)})
+    resp = await call_next(request)
+    resp.headers["X-Request-ID"] = rid
+    return resp
+
+
 app.include_router(capture.router)
 app.include_router(evidence.router)
+app.include_router(periods.router)
+app.include_router(trace.router)
+app.include_router(collect.admin)
+app.include_router(collect.public)
 app.include_router(reports.router)
 app.include_router(alerts.router)
 
@@ -147,7 +163,7 @@ def audit_log(actor: str | None = None, table: str | None = None, action: str | 
               user: dict = Depends(require("esg_admin", "auditor"))):
     with db.conn() as c:
         return db.rows(c, """
-            SELECT audit_id, ts, actor, action, table_name, record_id, detail, before, after FROM audit_log
+            SELECT audit_id, ts, actor, action, table_name, record_id, detail, ip, request_id, before, after FROM audit_log
             WHERE (%s::text IS NULL OR actor ILIKE '%%' || %s || '%%') AND (%s::text IS NULL OR table_name = %s)
               AND (%s::text IS NULL OR action = %s) ORDER BY audit_id DESC LIMIT %s""",
                        (actor, actor, table, table, action, action, limit))

@@ -1,5 +1,6 @@
 """Database access: one pooled connection per request, search_path pinned to the esg schema."""
 import contextlib
+import contextvars
 import json
 import os
 
@@ -9,6 +10,8 @@ from psycopg_pool import ConnectionPool
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "postgresql://esg:esg@localhost:5432/esg")
 _pool = None
+# Set per request by the middleware so every audit row says where it came from.
+REQUEST_CTX = contextvars.ContextVar("request_ctx", default={})
 
 
 def pool() -> ConnectionPool:
@@ -47,12 +50,13 @@ def jsonable(obj):
 
 
 def audit(c, actor, action, table=None, record_id=None, before=None, after=None, detail=None):
+    ctx = REQUEST_CTX.get()
     c.execute(
-        "INSERT INTO audit_log (actor, action, table_name, record_id, before, after, detail) "
-        "VALUES (%s,%s,%s,%s,%s,%s,%s)",
+        "INSERT INTO audit_log (actor, action, table_name, record_id, before, after, detail, ip, request_id) "
+        "VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)",
         (actor, action, table, None if record_id is None else str(record_id),
          None if before is None else Jsonb(jsonable(before)),
-         None if after is None else Jsonb(jsonable(after)), detail))
+         None if after is None else Jsonb(jsonable(after)), detail, ctx.get("ip"), ctx.get("request_id")))
 
 
 _PKS = None

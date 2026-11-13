@@ -109,6 +109,25 @@ tests/      pytest suite (needs DATABASE_URL pointing at a disposable Postgres w
 To change the data model, edit `tools/model.py`, run `python tools/generate.py`, and copy `build/schema.sql`
 and `build/esg_schemas.json` into `db/01_schema.sql` and `app/esg_schemas.json`.
 
+**Round 1 of replacing vendor tools.**
+- *Source trace* (Source trace page): any reported activity opens to its emission factor, the source records, who
+  entered and approved them, and the evidence photos; hand-read meter intervals link back to the register reading.
+- *Period lock* (Admin): an administrator locks a calculation run for a reporting period. Database triggers then refuse
+  new, changed or deleted data inside the period, recalculation of it, and edits to emission factors the run used.
+  Unlocking needs a reason and is audited. Corrections for later years use a new factor with a later `valid_from`.
+- *Third-party collection links* (Admin): a private, expiring, single-use link lets a tenant or contractor submit chosen
+  metrics without an account, with their last values pre-filled and an optional file. Submissions wait for approval.
+  Only a hash of the token is stored; the token travels in a header and the page strips it from the address bar.
+- *Audit context*: audit rows now carry the client IP and a request id (also returned as `X-Request-ID`).
+  The IP honours `X-Forwarded-For`, so only trust it behind your own proxy.
+- *Flat readings*: an unchanged hand-read register value is flagged.
+- Migrations are tracked in `esg.schema_migration` and applied at startup.
+
+**Not yet built (planned rounds):** water footprint, equity-share consolidation, ingest batches with withdraw,
+per-framework completeness, DB-level audit triggers on every table, AI document classification and anomaly
+detection, data-logger connectors, report templates, ISO 14001 / 50001 workflows. Vendor ontology size, patents,
+SOC 2 and 24/7 support cannot be matched by code alone.
+
 ## Known limits (read before production)
 
 - Auth is email + password with signed tokens. No SSO, MFA, lockout or rate limiting yet; put it behind your
@@ -137,7 +156,7 @@ and `build/esg_schemas.json` into `db/01_schema.sql` and `app/esg_schemas.json`.
 ```bash
 DATABASE_URL=postgresql://... pytest -q tests
 ```
-27 tests cover role boundaries, ingestion edge cases, four-eyes, audit immutability, calculation arithmetic
+33 tests cover role boundaries, ingestion edge cases, four-eyes, audit immutability, calculation arithmetic
 against independent queries, rejected-record exclusion, KPI formulas, exports, alert de-duplication,
-auto-resolve, webhook delivery, and rule-parameter injection guards, and the evidence flow
+auto-resolve, webhook delivery, and rule-parameter injection guards, period locks, collection links, source trace, and the evidence flow
 (OCR of a synthetic meter photo, flags, atomic linking, rollover, derived consumption, field-operator limits).

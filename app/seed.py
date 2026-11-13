@@ -511,12 +511,16 @@ def seed_demo(c, today: date | None = None):
 
 
 def apply_migrations(c):
-    """Bring a database built before the evidence feature up to date (idempotent; a no-op on fresh installs)."""
-    if db.row(c, "SELECT to_regclass('esg.evidence_capture') AS t")["t"]:
-        return
+    """Bring a database built from an older schema up to date. Each migration runs once and is recorded."""
+    c.execute("CREATE TABLE IF NOT EXISTS esg.schema_migration (name text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())")
+    if db.row(c, "SELECT to_regclass('esg.evidence_capture') AS t")["t"]:      # built from a schema that already has 001
+        c.execute("INSERT INTO esg.schema_migration (name) VALUES ('001_evidence_ocr.sql') ON CONFLICT DO NOTHING")
+    done = {r["name"] for r in db.rows(c, "SELECT name FROM esg.schema_migration")}
     d = Path(__file__).resolve().parent.parent / "db" / "migrations"
     for f in sorted(d.glob("*.sql")):
-        c.execute(f.read_text())
+        if f.name not in done:
+            c.execute(f.read_text())
+            c.execute("INSERT INTO esg.schema_migration (name) VALUES (%s)", (f.name,))
 
 
 def ensure_initial_data():
