@@ -130,8 +130,7 @@ and `build/esg_schemas.json` into `db/01_schema.sql` and `app/esg_schemas.json`.
   Not yet modelled: per-source water-stress classification, quality of discharge against permit limits.
 - Migrations are tracked in `esg.schema_migration` and applied at startup.
 
-**Not yet built (planned rounds):** 
-per-framework completeness, DB-level audit triggers on every table, AI document classification and anomaly
+**Not yet built (planned rounds):** per-framework completeness, DB-level audit triggers on every table, AI document classification and anomaly
 detection, data-logger connectors, report templates, ISO 14001 / 50001 workflows. Vendor ontology size, patents,
 SOC 2 and 24/7 support cannot be matched by code alone.
 
