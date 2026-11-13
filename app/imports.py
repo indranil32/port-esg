@@ -9,7 +9,7 @@ from datetime import date, datetime, timezone
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from fastapi.responses import Response
 
-from . import db
+from . import db, files
 from .auth import current_user, require
 
 # uuid column -> (alias header, referenced table, its natural key column)
@@ -156,8 +156,15 @@ imp = APIRouter(prefix="/api/import")
 ADMIN = require("esg_admin")
 
 
-async def read_csv(file: UploadFile, required, limit=5000):
-    text = (await file.read()).decode("utf-8-sig")
+async def read_csv(file: UploadFile, required, limit=5000, user=None, target=""):
+    data = await file.read()
+    if user is not None:                       # keep the original file for audit, even if it is then rejected
+        with db.conn() as c:
+            files.archive(c, user, "reference_import", target, file.filename, data, file.content_type)
+    try:
+        text = data.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        raise HTTPException(400, "File must be UTF-8 CSV (save Excel sheets as CSV UTF-8)")
     rd = csv.DictReader(io.StringIO(text))
     missing = [h for h in required if h not in (rd.fieldnames or [])]
     if missing:
@@ -174,7 +181,7 @@ def pipe(s):
 
 @imp.post("/metrics")
 async def import_metrics(file: UploadFile = File(...), user: dict = Depends(ADMIN)):
-    rows = await read_csv(file, ["metric_code", "name", "pillar"])
+    rows = await read_csv(file, ["metric_code", "name", "pillar"], user=user, target="metric")
     ins = upd = 0
     errors = []
     with db.conn() as c:
@@ -200,7 +207,7 @@ async def import_metrics(file: UploadFile = File(...), user: dict = Depends(ADMI
 
 @imp.post("/framework-map")
 async def import_framework_map(file: UploadFile = File(...), user: dict = Depends(ADMIN)):
-    rows = await read_csv(file, ["framework_code", "disclosure_code"])
+    rows = await read_csv(file, ["framework_code", "disclosure_code"], user=user, target="framework_map")
     reqs = maps = 0
     errors = []
     with db.conn() as c:
@@ -229,7 +236,7 @@ async def import_framework_map(file: UploadFile = File(...), user: dict = Depend
 
 @imp.post("/legal")
 async def import_legal(file: UploadFile = File(...), user: dict = Depends(require("esg_admin", "data_owner"))):
-    rows = await read_csv(file, ["ref", "title", "kind"])
+    rows = await read_csv(file, ["ref", "title", "kind"], user=user, target="legal_requirement")
     ins = upd = 0
     errors = []
     with db.conn() as c:

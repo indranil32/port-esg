@@ -11,7 +11,7 @@ from fastapi.concurrency import run_in_threadpool
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from . import alerts, auth, entra, batches, compliance, imports, ems, capture, collect, db, evidence, periods, reports, seed, trace
+from . import alerts, auth, entra, files, batches, compliance, imports, ems, capture, collect, db, evidence, periods, reports, seed, trace
 from .auth import current_user, require
 
 log = logging.getLogger("esg")
@@ -59,6 +59,7 @@ app.include_router(capture.router)
 app.include_router(evidence.router)
 app.include_router(periods.router)
 app.include_router(batches.router)
+app.include_router(files.router)
 app.include_router(ems.router)
 app.include_router(compliance.router)
 app.include_router(imports.router)

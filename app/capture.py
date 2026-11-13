@@ -15,7 +15,7 @@ from . import storage
 from jsonschema import Draft202012Validator, FormatChecker
 from pydantic import BaseModel
 
-from . import batches, db, evidence, imports
+from . import batches, db, evidence, files, imports
 from .auth import current_user, require
 
 router = APIRouter(prefix="/api")
@@ -238,7 +238,13 @@ async def ingest_csv(table: str, file: UploadFile = File(...), user: dict = Depe
     check_table(table)
     if not can_write(user, table):
         raise HTTPException(403, f"Your role cannot write to {table}")
-    text = (await file.read()).decode("utf-8-sig")
+    data = await file.read()
+    with db.conn() as c:                       # original file kept first, so a rejected upload is still on record
+        file_id = files.archive(c, user, "csv_ingest", table, file.filename, data, file.content_type)
+    try:
+        text = data.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        raise HTTPException(400, "File must be UTF-8 CSV (save Excel sheets as CSV UTF-8)")
     reader = csv.DictReader(io.StringIO(text))
     props = SCHEMAS[table]["properties"]
     alias = imports.aliases_for(props)
@@ -260,6 +266,9 @@ async def ingest_csv(table: str, file: UploadFile = File(...), user: dict = Depe
         raise HTTPException(400, "CSV must contain between 1 and 50000 rows")
     with db.conn() as c:
         res = batches.record(c, user, ingest_records(c, user, table, records, "CSV"), "CSV", file.filename)
+        if res.get("batch_id"):
+            files.link_batch(c, file_id, res["batch_id"])
+    res["file_id"] = file_id
     res["errors"] = errors + [e for e in res["errors"] if e["index"] not in {x["index"] for x in errors}]
     return res
 

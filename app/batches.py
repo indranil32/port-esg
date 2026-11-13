@@ -28,7 +28,7 @@ def record(c, user, res, source_code, filename):
 @router.get("")
 def list_batches(user: dict = Depends(require("esg_admin", "data_owner", "auditor"))):
     with db.conn() as c:
-        return db.rows(c, "SELECT *, (withdrawn_at IS NULL) AS active FROM ingest_batch ORDER BY created_at DESC LIMIT 200")
+        return db.rows(c, "SELECT *, (withdrawn_at IS NULL) AS active, (SELECT f.file_id::text FROM source_file f WHERE f.batch_id = ingest_batch.batch_id LIMIT 1) AS file_id FROM ingest_batch ORDER BY created_at DESC LIMIT 200")
 
 
 class Withdraw(BaseModel):
