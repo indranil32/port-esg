@@ -324,11 +324,11 @@ def test_ems_objectives_actions_audits_reviews(client, H):
     assert listed["actions"] == 1 and listed["actions_overdue"] == 1
     assert ems.progress(2000, 1000, 1500) == 50.0 and ems.progress(10, 20, 15) == 50.0 and ems.progress(5, 5, 5) is None
     with db.conn() as c:
-        assert any(f["context"]["action_id"] == a.json()["action_id"] for f in ems.f_ems_overdue(c, {}))
+        assert any(f["context"].get("action_id") == a.json()["action_id"] for f in ems.f_ems_overdue(c, {}))
     done = client.patch(f"/api/ems/actions/{a.json()['action_id']}", headers=H["owner"], json={"status": "done", "note": "Fitted"})
     assert done.status_code == 200 and done.json()["completed_at"]
     with db.conn() as c:
-        assert not any(f["context"]["action_id"] == a.json()["action_id"] for f in ems.f_ems_overdue(c, {}))
+        assert not any(f["context"].get("action_id") == a.json()["action_id"] for f in ems.f_ems_overdue(c, {}))
     ref = "IA-" + UNIQ()
     assert client.post("/api/ems/audits", headers=H["admin"], json={"audit_ref": ref, "standard": "ISO50001", "planned_date": "2020-02-01", "scope": "Terminal"}).status_code == 200
     assert client.post("/api/ems/audits", headers=H["admin"], json={"audit_ref": ref, "standard": "ISO50001", "planned_date": "2020-02-01"}).status_code == 409
