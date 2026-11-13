@@ -113,6 +113,7 @@ jobs:
 
   deploy:
     name: Deploy to Azure and smoke test
+    timeout-minutes: 30
     needs: build
     if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || inputs.deploy)
     runs-on: ubuntu-latest
@@ -154,7 +155,7 @@ jobs:
           DEMO_PASSWORD=$(az containerapp secret show -g "$RG" -n "$APP" --secret-name demo-password --query value -o tsv)
           echo "::add-mask::$DEMO_PASSWORD"
           export DEMO_PASSWORD
-          pytest -p no:cacheprovider --junitxml=smoke.xml
+          pytest -p no:cacheprovider -v --durations=10 --junitxml=smoke.xml
       - uses: actions/upload-artifact@v4
         if: always()
         with: { name: smoke-results, path: smoke.xml }
