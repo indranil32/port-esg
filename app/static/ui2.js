@@ -33,7 +33,7 @@ async function trOpen(id) {
 
 /* ---------- admin: locks, factors, collection links ---------- */
 async function adminExtra() {
-  const [locks, runs, factors, links, tenants, metrics] = await Promise.all([api("/periods"), api("/runs"), api("/periods/factors"), api("/collect-links"), api("/lookup/tenant"), api("/collect-links/metrics")]);
+  const [locks, runs, factors, links, tenants, metrics, batches] = await Promise.all([api("/periods"), api("/runs"), api("/periods/factors"), api("/collect-links"), api("/lookup/tenant"), api("/collect-links/metrics"), api("/batches")]);
   const ok = runs.filter(r => r.status === "succeeded");
   $("#adm-extra").innerHTML = `<div class="card" style="margin-bottom:14px"><h2>Reporting period locks</h2>
     <p class="muted small">A locked period freezes its data, its calculation and the emission factors behind it. Unlocking needs a reason and is audited.</p>
@@ -41,6 +41,9 @@ async function adminExtra() {
       <td>${l.active ? `<span class="chip bad">🔒 Locked</span>` : `<span class="muted small">Unlocked ${dt16(l.unlocked_at)}<br>${esc(l.unlock_reason || "")}</span>`}</td><td>${l.active ? `<button class="sm" data-act="unlockPeriod" data-id="${l.lock_id}">Unlock…</button>` : ""}</td></tr>`).join("") || `<tr><td colspan="5" class="muted">No locks yet.</td></tr>`}</table>
     <form data-form="lock" class="row" style="margin-top:8px"><select name="run_id" required>${ok.filter(r => !r.locked).map(r => `<option value="${r.run_id}">${d10(r.period_start)} to ${d10(r.period_end)} · ${String(r.run_id).slice(0, 8)}</option>`).join("")}</select>
     <input name="label" placeholder="Label, e.g. FY2025 annual report" required><input name="reason" placeholder="Reason" required><button class="primary">Lock period</button></form></div>
+    <div class="card" style="margin-bottom:14px"><h2>Data loads (API and CSV)</h2><p class="muted small">Each load is a batch. Withdrawing a bad file rejects all of its records in one step; they stay on file and are excluded from every calculation.</p>
+    <div class="scroll" style="max-height:240px"><table><tr><th>When</th><th>Table</th><th>By</th><th class="num">Records</th><th>Status</th><th></th></tr>${batches.map(b => `<tr><td class="small">${dt16(b.created_at)}</td><td class="small">${esc(b.table_name)}<br>${esc(b.filename || b.source_code || "")}</td><td class="small">${esc(b.created_by)}</td><td class="num">${b.inserted}</td>
+      <td>${b.active ? "Loaded" : `<span class="muted small">Withdrawn ${b.withdrawn_count} · ${esc(b.withdraw_reason || "")}</span>`}</td><td>${b.active ? `<button class="sm" data-act="withdrawBatch" data-id="${b.batch_id}">Withdraw…</button>` : ""}</td></tr>`).join("") || `<tr><td colspan="6" class="muted">No loads yet.</td></tr>`}</table></div></div>
     <div class="card" style="margin-bottom:14px"><h2>Emission factors</h2><div class="scroll" style="max-height:240px"><table><tr><th>Factor</th><th class="num">Value</th><th>Valid from</th><th>Source</th><th></th></tr>${factors.map(f => `<tr><td class="small">${esc(f.activity_type + " / " + (f.fuel_or_grid || ""))}</td><td class="num">${esc(f.value)} <span class="muted small">${esc(f.uom || "")}</span></td><td class="small">${d10(f.valid_from)}</td><td class="small">${esc(f.source || "")}</td><td>${f.in_locked_period ? `<span class="chip bad">🔒 in locked period</span>` : ""}</td></tr>`).join("")}</table></div></div>
     <div class="card" style="margin-bottom:14px"><h2>Third-party data collection links</h2><p class="muted small">Send a tenant or contractor a private link to submit specific metrics without an account. The link expires, works once, and everything they send waits for approval.</p>
     <table><tr><th>Tenant</th><th>Period</th><th>Status</th><th>Expires</th><th></th></tr>${links.map(l => `<tr><td>${esc(l.tenant || "")}</td><td class="small">${d10(l.period_start)} to ${d10(l.period_end)}</td><td>${esc(l.status)}</td><td class="small">${dt16(l.expires_at)}</td><td>${l.status === "open" ? `<button class="sm" data-act="revokeLink" data-id="${l.link_id}">Revoke</button>` : ""}</td></tr>`).join("") || `<tr><td colspan="5" class="muted">None yet.</td></tr>`}</table>
@@ -53,6 +56,8 @@ Object.assign(ACT, {
   trLoad: () => guard(trLoad), trOpen: el => guard(() => trOpen(el.dataset.id)),
   unlockPeriod: el => guard(async () => { const reason = prompt("Reason for unlocking (required):"); if (!reason) return;
     await api(`/periods/${el.dataset.id}/unlock`, { method: "POST", json: { reason } }); toast("Period unlocked"); route(); }),
+  withdrawBatch: el => guard(async () => { const reason = prompt("Reason for withdrawing this load (required):"); if (!reason) return;
+    const r = await api(`/batches/${el.dataset.id}/withdraw`, { method: "POST", json: { reason } }); toast(r.withdrawn + " records withdrawn"); route(); }),
   revokeLink: el => guard(async () => { await api(`/collect-links/${el.dataset.id}/revoke`, { method: "POST" }); route(); }),
 });
 Object.assign(FORMS, {

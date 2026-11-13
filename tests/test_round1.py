@@ -194,3 +194,28 @@ def test_unchanged_reading_is_flagged(client, H):
             "capture_id": cap.json()["capture_id"], "meter_id": mid, "register_value": 500.0, "read_at": at.isoformat()})
         out.append(s.json()["flags"])
     assert "unchanged_reading" in {f["code"] for f in out[1]} and "unchanged_reading" not in {f["code"] for f in out[0]}
+
+
+# ------------------------------------------------------------------ ingest batches
+def test_batch_withdraw(client, H):
+    ent = terminal(client, H)
+    recs = [{"entity_id": ent, "fuel_type": "diesel", "litres": 7, "ts": f"2019-05-0{d}T08:00:00Z", "source_record_id": f"b{d}-" + UNIQ()} for d in (1, 2, 3)]
+    r = client.post("/api/ingest/fuel_transaction", headers=H["owner"], json={"records": recs}).json()
+    assert r["inserted"] == 3 and r["batch_id"] and "_all" not in r
+    b = [x for x in client.get("/api/batches", headers=H["auditor"]).json() if x["batch_id"] == r["batch_id"]][0]
+    assert b["inserted"] == 3 and b["active"]
+    assert client.post(f"/api/batches/{r['batch_id']}/withdraw", headers=H["auditor"], json={"reason": "x"}).status_code == 403
+    assert client.post(f"/api/batches/{r['batch_id']}/withdraw", headers=H["owner"], json={"reason": " "}).status_code == 400
+    w = client.post(f"/api/batches/{r['batch_id']}/withdraw", headers=H["owner"], json={"reason": "Wrong file"})
+    assert w.status_code == 200 and w.json()["withdrawn"] == 3
+    assert client.post(f"/api/batches/{r['batch_id']}/withdraw", headers=H["owner"], json={"reason": "again"}).status_code == 409
+    rows = client.get("/api/records/fuel_transaction?limit=500", headers=H["admin"]).json()["rows"]
+    mine = [x for x in rows if str(x["source_record_id"]).startswith(("b1-", "b2-", "b3-")) and str(x["ts"]).startswith("2019-05")]
+    assert mine and all(x["validation_status"] == "rejected" for x in mine)
+    # a locked period blocks the withdrawal
+    recs = [{"entity_id": ent, "fuel_type": "diesel", "litres": 7, "ts": "2018-05-01T08:00:00Z", "source_record_id": "lk-" + UNIQ()}]
+    r2 = client.post("/api/ingest/fuel_transaction", headers=H["owner"], json={"records": recs}).json()
+    run = client.post("/api/calc/run", headers=H["admin"], json={"period_start": "2018-05-01", "period_end": "2018-05-31"}).json()
+    client.post("/api/periods/lock", headers=H["admin"], json={"run_id": run["run_id"], "label": "May 2018 (test)", "reason": "t"})
+    blocked = client.post(f"/api/batches/{r2['batch_id']}/withdraw", headers=H["owner"], json={"reason": "late"})
+    assert blocked.status_code == 409 and "locked" in blocked.text

@@ -121,6 +121,8 @@ and `build/esg_schemas.json` into `db/01_schema.sql` and `app/esg_schemas.json`.
 - *Audit context*: audit rows now carry the client IP and a request id (also returned as `X-Request-ID`).
   The IP honours `X-Forwarded-For`, so only trust it behind your own proxy.
 - *Flat readings*: an unchanged hand-read register value is flagged.
+- *Ingest batches* (Admin): every API or CSV load is a batch; a bad file can be withdrawn in one audited step (records are
+  rejected, not deleted, and a locked period blocks it).
 - Migrations are tracked in `esg.schema_migration` and applied at startup.
 
 **Not yet built (planned rounds):** water footprint, equity-share consolidation, ingest batches with withdraw,
@@ -156,7 +158,7 @@ SOC 2 and 24/7 support cannot be matched by code alone.
 ```bash
 DATABASE_URL=postgresql://... pytest -q tests
 ```
-33 tests cover role boundaries, ingestion edge cases, four-eyes, audit immutability, calculation arithmetic
+34 tests cover role boundaries, ingestion edge cases, four-eyes, audit immutability, calculation arithmetic
 against independent queries, rejected-record exclusion, KPI formulas, exports, alert de-duplication,
 auto-resolve, webhook delivery, and rule-parameter injection guards, period locks, collection links, source trace, and the evidence flow
 (OCR of a synthetic meter photo, flags, atomic linking, rollover, derived consumption, field-operator limits).

@@ -13,7 +13,7 @@ from fastapi.responses import FileResponse
 from jsonschema import Draft202012Validator, FormatChecker
 from pydantic import BaseModel
 
-from . import db, evidence
+from . import batches, db, evidence
 from .auth import current_user, require
 
 router = APIRouter(prefix="/api")
@@ -206,7 +206,7 @@ def ingest_records(c, user, table, records, source_code):
         except psycopg.Error as e:
             errors.append({"index": i, "error": pg_message(e)})
     return {"table": table, "received": len(records), "inserted": len(inserted), "duplicates": dups,
-            "errors": errors, "ids": inserted[:200]}
+            "errors": errors, "ids": inserted[:200], "_all": inserted}
 
 
 class IngestBody(BaseModel):
@@ -222,7 +222,8 @@ def ingest(table: str, body: IngestBody, user: dict = Depends(current_user)):
     if not body.records or len(body.records) > 20000:
         raise HTTPException(400, "Send between 1 and 20000 records per call")
     with db.conn() as c:
-        return ingest_records(c, user, table, body.records, body.source_system_code)
+        return batches.record(c, user, ingest_records(c, user, table, body.records, body.source_system_code),
+                              body.source_system_code, None)
 
 
 @router.post("/ingest/{table}/csv")
@@ -250,7 +251,7 @@ async def ingest_csv(table: str, file: UploadFile = File(...), user: dict = Depe
     if not records or len(records) > 50000:
         raise HTTPException(400, "CSV must contain between 1 and 50000 rows")
     with db.conn() as c:
-        res = ingest_records(c, user, table, records, "CSV")
+        res = batches.record(c, user, ingest_records(c, user, table, records, "CSV"), "CSV", file.filename)
     res["errors"] = errors + [e for e in res["errors"] if e["index"] not in {x["index"] for x in errors}]
     return res
 
