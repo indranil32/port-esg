@@ -1,6 +1,6 @@
 fastapi>=0.162.3
 uvicorn[standard]>=0.54.0
-psycopg[binary]>=3.1
+psycopg[binary]>=3.3.9
 psycopg_pool>=3.2
 python-multipart>=0.0.33
 jsonschema>=4.20
