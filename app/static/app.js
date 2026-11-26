@@ -90,7 +90,7 @@ const NAV = [
   ["alerts", "Alerts", ["esg_admin", "data_owner", "auditor"]], ["trace", "Source trace", ["esg_admin", "data_owner", "auditor"]], ["audit", "Audit log", ["esg_admin", "auditor"]], ["admin", "Admin", ["esg_admin"]],
 ];
 const ROUTES = { trace: (v) => traceView(v), field, dashboard, emissions, kpis, disclosures, capture, approvals, alerts, audit, admin };
-function logout() { localStorage.removeItem("esg_token"); S.token = null; S.user = null; renderLogin(); }
+function logout() { localStorage.removeItem("esg_token"); S.token = null; S.user = null; CAP = { table: null, tab: "form", groups: [] }; renderLogin(); }
 async function renderLogin(err) {
   let cf = { entra: false, local: true };
   try { cf = await fetch("/api/auth/config").then(r => r.json()); } catch (_) {}
@@ -213,7 +213,8 @@ let CAP = { table: null, tab: "form", groups: [] };
 async function capture(v) {
   CAP.groups = await api("/tables");
   if (!CAP.linkable) { try { CAP.linkable = (await api("/captures/config")).linkable; } catch (_) { CAP.linkable = []; } }
-  if (!CAP.table) CAP.table = CAP.groups[0].tables[0].table;
+  const allowed = CAP.groups.flatMap(g => g.tables.map(t => t.table));
+  if (!CAP.table || !allowed.includes(CAP.table)) { CAP.table = allowed[0]; CAP.tab = "form"; }
   v.innerHTML = `<h1>Data capture</h1><p class="muted small">Every entry is validated against the data model, stored as pending, and needs a second person's approval (four-eyes) before it is validated.</p>
     <div class="split"><div class="tlist card" id="tlist"></div><div id="cap-main"></div></div>`;
   drawTableList(); await drawCapture();
