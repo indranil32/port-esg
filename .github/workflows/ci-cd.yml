@@ -19,6 +19,9 @@ permissions:
 
 env:
   IMAGE: ghcr.io/${{ github.repository }}
+  # Must match the `prefix` parameter in infra/dev.bicepparam — the deploy job
+  # resolves its container app as ca-<APP_PREFIX>-<uniqueString(rg.id)>.
+  APP_PREFIX: esgdev
 
 jobs:
   test:
@@ -135,7 +138,18 @@ jobs:
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
       - name: Locate app and current image
         run: |
-          APP=$(az containerapp list -g "$RG" --query "[0].name" -o tsv)
+          # Resolved by name, not [0]: the resource group may host more than one
+          # container app (the Ports Performance Control Tower shares this group
+          # on the trial subscription, since only one Container Apps environment
+          # and one PostgreSQL server are permitted). `[0]` is whichever Azure
+          # returns first, so it could point this deployment at another app.
+          APP=$(az containerapp list -g "$RG" \
+                  --query "[?starts_with(name, 'ca-${{ env.APP_PREFIX }}-')].name | [0]" -o tsv)
+          if [ -z "$APP" ]; then
+            echo "::error::No container app named ca-${{ env.APP_PREFIX }}-* in resource group $RG."
+            exit 1
+          fi
+          echo "Target app: $APP"
           echo "APP=$APP" >> $GITHUB_ENV
           echo "PREV=$(az containerapp show -g "$RG" -n "$APP" --query 'properties.template.containers[0].image' -o tsv)" >> $GITHUB_ENV
           echo "FQDN=$(az containerapp show -g "$RG" -n "$APP" --query properties.configuration.ingress.fqdn -o tsv)" >> $GITHUB_ENV
